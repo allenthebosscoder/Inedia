@@ -216,7 +216,12 @@ def test_paste_applications_crlf_multiple_rows_all_inserted(client):
     assert {r["company"] for r in rows} == {"Acme", "Beta"}
 
 
-def test_get_profile_returns_valid_shape(client):
+def test_get_profile_returns_valid_shape(client, monkeypatch):
+    # Isolate from any local profile_data_private.py -- these assertions
+    # describe the generic fallback profile, not whatever a real private
+    # file on this machine contains.
+    monkeypatch.setattr("profile_data.PRIVATE_PROFILE", None)
+    monkeypatch.setattr("profile_data._private_build_profile", None)
     resp = client.get("/api/profile")
     assert resp.status_code == 200
     profile = resp.get_json()
@@ -348,7 +353,11 @@ def test_set_active_profile_normalizes_employer_jobtitle_current_aliases(tmp_pat
     assert "current" not in entry
 
 
-def test_build_profile_falls_back_to_full_work_history_when_none_primed(tmp_path):
+def test_build_profile_falls_back_to_full_work_history_when_none_primed(tmp_path, monkeypatch):
+    # Isolate from any local profile_data_private.py -- see the comment on
+    # test_get_profile_returns_valid_shape.
+    monkeypatch.setattr("profile_data.PRIVATE_PROFILE", None)
+    monkeypatch.setattr("profile_data._private_build_profile", None)
     path = str(tmp_path / "active_profile.json")
     set_active_profile("Entry", "resume.pdf", "data:application/pdf;base64,ZmFrZQ==", path=path)
     profile = build_profile(path=path)

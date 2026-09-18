@@ -23,11 +23,24 @@ try:
 except ImportError:
     PRIVATE_PROFILE = None
 
+try:
+    from profile_data_private import build_profile as _private_build_profile
+except (ImportError, AttributeError):
+    _private_build_profile = None
+
 def _load_active_profile(path):
     if not os.path.exists(path): return {}
     with open(path) as f: return json.load(f)
 
 def build_profile(path=ACTIVE_PROFILE_PATH):
+    # profile_data_private.py.example only defines a static STATIC_PROFILE
+    # dict, but a local private file may instead implement its own richer
+    # build_profile() (real education/grad-date logic, etc.) -- defer to it
+    # when present rather than re-deriving a profile from its STATIC_PROFILE
+    # here, which does not carry an "education" entry and would otherwise
+    # silently fall back to this module's generic placeholder education.
+    if _private_build_profile is not None:
+        return _private_build_profile(path)
     active = _load_active_profile(path)
     profile = json.loads(json.dumps(PRIVATE_PROFILE or STATIC_PROFILE))
     role_type = active.get("role_type", "Entry")
