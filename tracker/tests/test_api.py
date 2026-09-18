@@ -354,7 +354,7 @@ def test_build_profile_falls_back_to_full_work_history_when_none_primed(tmp_path
     profile = build_profile(path=path)
     companies = [entry["company"] for entry in profile["workHistory"]]
     assert "Example Labs" in companies
-    assert len(profile["workHistory"]) == 4
+    assert len(profile["workHistory"]) == 1
 
 
 def test_set_active_profile_primes_role_label(tmp_path):

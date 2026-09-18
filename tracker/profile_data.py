@@ -10,8 +10,8 @@ ACTIVE_PROFILE_PATH = os.path.join(os.path.dirname(__file__), "resumes", "active
 GRAD_DATE_BY_TYPE = {"Entry": "05/2027", "Intern": "12/2027"}
 
 STATIC_PROFILE = {
-    "version": 1, "personal": {"firstName": "", "middleName": "", "lastName": "", "email": "", "phone": "", "address": "", "addressLine2": "", "city": "", "county": "", "country": "", "state": "", "zip": "", "phoneType": "", "phoneCountryCode": ""},
-    "workAuthorization": {"authorizedToWork": "", "requiresSponsorship": "", "plansToUseOPT": "", "usPerson": "", "restrictedCountryStatus": ""},
+    "version": 1, "personal": {"firstName": "Example", "middleName": "", "lastName": "User", "email": "you@example.com", "phone": "", "address": "", "addressLine2": "", "city": "", "county": "", "country": "United States", "state": "", "zip": "", "phoneType": "mobile", "phoneCountryCode": "United States"},
+    "workAuthorization": {"authorizedToWork": "yes", "requiresSponsorship": "no", "plansToUseOPT": "", "usPerson": "", "restrictedCountryStatus": ""},
     "jobPreferences": {"availableStartDate": "", "atLeast18": "", "minimumSalary": "", "compensationMax": "", "usCitizen": "", "securityClearance": "", "willingToRelocate": "", "willingToWorkOnsite": "", "canCommitInternshipTerm": ""},
     "professional": {"hasNonCompeteAgreement": "", "everTerminated": "", "highestEducation": "bachelors", "skills": "Python, JavaScript, Git"},
     "disclosures": {"hispanicOrLatino": "", "gender": "", "raceEthnicity": "", "veteranStatus": "", "disabilityStatus": ""},
