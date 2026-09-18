@@ -61,6 +61,23 @@ def test_priority_pick_moves_to_priority_section(live_server, chrome_page):
 
 
 @pytest.mark.live
+def test_applying_priority_pick_removes_it_from_priority(live_server, chrome_page):
+    base, db_path = live_server
+    _seed(db_path)
+    from db import get_db
+    conn = get_db(db_path)
+    conn.execute("UPDATE daily_picks SET priority=1 WHERE job_key='t1'")
+    conn.commit()
+    conn.close()
+
+    chrome_page.goto(f"{base}/picks")
+    chrome_page.wait_for_selector("#priority .pick-card")
+    chrome_page.click("#priority .pick-card [data-act='apply']")
+    chrome_page.wait_for_selector("#applied .pick-card")
+    assert chrome_page.query_selector("#priority .pick-card") is None
+
+
+@pytest.mark.live
 def test_delete_button_removes_card(live_server, chrome_page):
     base, db_path = live_server
     _seed(db_path)

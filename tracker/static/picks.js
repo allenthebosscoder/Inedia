@@ -7,7 +7,9 @@ async function load() {
     const picks = await (await fetch("/api/picks")).json();
     const priority = [], today = [], carried = [], applied = [];
     for (const p of picks) {
-        if (p.priority) {
+        // Once a priority pick is applied, it belongs in Applied today rather
+        // than remaining pinned in the action queue.
+        if (p.priority && p.status !== "applied") {
             priority.push(p);
         } else if (p.status === "applied") {
             // Only picks applied *today* — older applied picks stay in the DB
