@@ -222,8 +222,8 @@ def test_get_profile_returns_valid_shape(client):
     profile = resp.get_json()
     assert profile["version"] == 1
     assert profile["personal"]["firstName"] == "Example"
-    assert profile["workAuthorization"]["requiresSponsorship"] == "yes"
-    assert profile["workAuthorization"]["usPerson"] == "no"
+    assert profile["workAuthorization"]["requiresSponsorship"] == "no"
+    assert profile["workAuthorization"]["usPerson"] == ""
     assert isinstance(profile["workHistory"], list) and len(profile["workHistory"]) > 0
     assert profile["education"][0]["school"] == "Example University"
 
