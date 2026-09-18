@@ -1450,7 +1450,7 @@ git commit -m "feat: add jobright.ai adapter"
 
 **Interfaces:**
 - Consumes: `jobscan.adapters.base`, `scripts/capture_fixture.py` (from Task 9).
-- Produces: `jobscan.adapters.jobright.RunwayAdapter` with `source = "jobright"`, same method set as `JobrightAdapter` (`feed_url`, `walk_feed(page, is_seen=...)`, `extract_detail(page, card)`).
+- Produces: `jobscan.adapters.jobright.JobrightAdapter` with `source = "jobright"`, same method set as `JobrightAdapter` (`feed_url`, `walk_feed(page, is_seen=...)`, `extract_detail(page, card)`).
 - Produces: `jobscan.adapters.jobright.parse_cards(page) -> list[JobCard]`, `parse_detail(page, card) -> JobPosting`, `SELECTORS: dict[str,str]`, `LoginRequired`.
 
 - [ ] **Step 1: Capture real fixtures (manual, needs Allen logged in)**
@@ -1518,7 +1518,7 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'jobscan.adapters.jobri
 Create `jobscan/adapters/jobright.py` with the same structure as `jobscan/adapters/jobright.py` (Task 9 Step 4): module-level `MAX_CARDS = 300`, `CONSECUTIVE_SEEN_STOP = 15`, `SELECTORS` dict with the same keys, `LoginRequired`, `feed_url()`, `_text(el)`, `parse_cards(page)`, `parse_detail(page, card)`, `parse_detail_via_goto(page, card)`, and:
 
 ```python
-class RunwayAdapter:
+class JobrightAdapter:
     source = "jobright"
 
     def feed_url(self) -> str:
@@ -2087,7 +2087,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from jobscan.adapters.jobright import JobrightAdapter, LoginRequired as JobrightLogin
-from jobscan.adapters.jobright import RunwayAdapter, LoginRequired as RunwayLogin
+from jobscan.adapters.jobright import JobrightAdapter, LoginRequired as JobrightLogin
 from jobscan.adapters.swelist import SwelistAdapter
 from jobscan.profile import launch
 from jobscan.run import run
@@ -2125,11 +2125,11 @@ def main(argv=None):
     if links:
         print(f"SWElist: {len(links)} link(s) queued")
 
-    feeds = [JobrightAdapter(), RunwayAdapter()]
+    feeds = [JobrightAdapter(), JobrightAdapter()]
     try:
         with launch(headless=args.headless) as (context, page):
             artifact = run(args.db, feeds, SwelistAdapter(), links, page, args.out)
-    except (JobrightLogin, RunwayLogin) as e:
+    except (JobrightLogin, JobrightLogin) as e:
         print(f"NOT LOGGED IN: {e}. Open Chrome (rerun without --headless), "
               f"log into that site, then run again.")
         return 2
