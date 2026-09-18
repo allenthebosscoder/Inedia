@@ -164,7 +164,7 @@ describe('fillAdpForm', () => {
     document.body.append(line3);
     const profile: Profile = {
       ...DEFAULT_PROFILE,
-      personal: { ...DEFAULT_PROFILE.personal, address: '1332 Campus Drive' },
+      personal: { ...DEFAULT_PROFILE.personal, address: '123 Example Street' },
     };
 
     const summary = await fillAdpForm(profile, document, {

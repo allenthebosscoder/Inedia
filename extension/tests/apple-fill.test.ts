@@ -79,8 +79,8 @@ function profile(current = false): Profile {
 describe('fillAppleForm', () => {
   beforeEach(() => {
     document.body.innerHTML = `
-      <input id="profile-field-line1" value="1332 Campus Drive">
-      <input id="profile-field-line2" value="1332 Campus Drive">
+      <input id="profile-field-line1" value="123 Example Street">
+      <input id="profile-field-line2" value="123 Example Street">
       <input id="profile-preferredname" aria-required="false" data-autofill-flag="needs-input">
       <input id="apply-skills-typeahead-suggestion-textbox">
       <input id="attachfile-resume-supportfile" type="file">
