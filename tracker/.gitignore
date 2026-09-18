@@ -1,0 +1,11 @@
+.worktrees/
+tracker.db
+__pycache__/
+*.pyc
+.pytest_cache/
+resumes/
+cover_letters/
+career_prep/
+daily_run/
+.DS_Store
+texput.log

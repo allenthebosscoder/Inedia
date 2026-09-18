@@ -1,0 +1,6 @@
+"""Copy to profile_data_private.py and fill in your own local profile."""
+STATIC_PROFILE = {
+    "version": 1,
+    "personal": {"firstName": "Example", "middleName": "", "lastName": "User", "email": "you@example.com", "phone": "", "address": "", "addressLine2": "", "city": "", "county": "", "country": "United States", "state": "", "zip": "", "phoneType": "mobile", "phoneCountryCode": "United States"},
+    "workAuthorization": {}, "jobPreferences": {}, "professional": {"skills": ""}, "disclosures": {}, "links": {}, "workHistory": [], "education": [], "overrides": {}
+}

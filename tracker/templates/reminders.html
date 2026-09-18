@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reminders — Job Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='reminders.css') }}">
+</head>
+<body>
+    <h1>Reminders</h1>
+    <nav class="site-nav">
+        <a href="/">Tracker</a>
+        <a href="/picks">Daily Picks</a>
+        <a href="/reminders" class="active">Reminders</a>
+    </nav>
+
+    <form id="reminder-form">
+        <input type="date" name="due_date" required>
+        <input type="text" name="message" placeholder="What to follow up on" size="50" required>
+        <button type="submit">Add reminder</button>
+    </form>
+
+    <section id="due"><h2>Due now</h2><div class="reminder-list"></div></section>
+    <section id="upcoming"><h2>Upcoming</h2><div class="reminder-list"></div></section>
+    <section id="done"><h2>Done</h2><div class="reminder-list"></div></section>
+
+    <script src="{{ url_for('static', filename='reminders.js') }}"></script>
+</body>
+</html>

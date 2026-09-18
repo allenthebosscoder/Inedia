@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "chrome"]
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "src/storage/profile-schema.ts"]
+}

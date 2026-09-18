@@ -1,0 +1,7 @@
+.worktrees/
+.superpowers/
+dist/
+node_modules/
+.playwright/
+playwright-report/
+test-results/

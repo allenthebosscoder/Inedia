@@ -1,0 +1,59 @@
+#reminder-form {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+#reminder-form input[name="message"] { flex: 1; }
+
+section { margin-top: 1.75rem; }
+
+.reminder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.reminder-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.9rem;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.reminder-card.overdue {
+    background: var(--status-incomplete-bg);
+    border-color: #e6c568;
+}
+
+.reminder-card.done {
+    background: #fafafc;
+    color: var(--text-muted);
+    box-shadow: none;
+}
+
+.reminder-due {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.reminder-message {
+    flex: 1;
+}
+
+.reminder-empty {
+    color: var(--text-muted);
+    font-style: italic;
+}
