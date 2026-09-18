@@ -69,7 +69,7 @@ describe('fillGreenhouseForm', () => {
   it('commits official Greenhouse React Select choices and maps combined ECE to its canonical discipline', async () => {
     mountSelect('country', 'Country', ['Canada +1', 'United States +1'], true, '+1');
     mountSelect('candidate-location', 'Location', ['Durham, North Carolina, United States']);
-    mountSelect('school--0', 'School', ['Duke University', 'Duke Kunshan University']);
+    mountSelect('school--0', 'School', ['Example University', 'Duke Kunshan University']);
     mountSelect('degree--0', 'Degree', ["Bachelor's Degree", "Master's Degree"]);
     mountSelect('discipline--0', 'Discipline', ['Computer Science', 'Electrical Engineering', 'Engineering']);
     mountSelect('end-month--0', 'End month', ['April', 'May', 'June']);
@@ -105,7 +105,7 @@ describe('fillGreenhouseForm', () => {
         disabilityStatus: 'No, I do not have a disability and have not had one in the past',
       },
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
         graduationDate: '05/2027', startDate: '08/2024', endDate: '05/2027', gpa: '4',
       }],
     };
@@ -114,7 +114,7 @@ describe('fillGreenhouseForm', () => {
 
     expect(selected('country')).toBe('+1');
     expect(selected('candidate-location')).toBe('Durham, North Carolina, United States');
-    expect(selected('school--0')).toBe('Duke University');
+    expect(selected('school--0')).toBe('Example University');
     expect(selected('degree--0')).toBe("Bachelor's Degree");
     expect(selected('end-month--0')).toBe('May');
     expect((document.getElementById('end-year--0') as HTMLInputElement).value).toBe('2027');
@@ -197,7 +197,7 @@ describe('fillGreenhouseForm', () => {
       professional: { ...DEFAULT_PROFILE.professional, hasNonCompeteAgreement: 'no' },
       disclosures: { ...DEFAULT_PROFILE.disclosures, raceEthnicity: 'Asian' },
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical & Computer Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical & Computer Engineering',
         graduationDate: '05/2027', startDate: '08/2024', endDate: '05/2027', gpa: '4',
       }],
     };

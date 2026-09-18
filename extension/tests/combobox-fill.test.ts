@@ -378,16 +378,16 @@ describe('fillComboboxFields', () => {
 
   it('accepts a matching selected chip without reopening an empty search input', async () => {
     document.body.innerHTML = `
-      <div><div data-automation-id="selectedItem">Duke University</div>
+      <div><div data-automation-id="selectedItem">Example University</div>
         <input id="school" data-uxi-widget-type="selectinput" />
       </div>
     `;
     const trigger = document.getElementById('school')!;
     const field: FieldDescriptor = {
       element: trigger, label: 'School', kind: 'combobox', profileKey: 'personal.city',
-      candidates: ['Duke University'],
+      candidates: ['Example University'],
     };
-    const profile = { ...DEFAULT_PROFILE, personal: { ...DEFAULT_PROFILE.personal, city: 'Duke University' } };
+    const profile = { ...DEFAULT_PROFILE, personal: { ...DEFAULT_PROFILE.personal, city: 'Example University' } };
     expect(await fillComboboxFields([field], profile)).toEqual({ filled: 1, flagged: 0 });
   });
 
@@ -1079,19 +1079,19 @@ describe('fillComboboxFields', () => {
     trigger.addEventListener('keyup', (event) => {
       if ((event as KeyboardEvent).key !== 'Enter') return;
       portalRoot.innerHTML = queryReady
-        ? '<div data-automation-id="promptOption" data-automation-label="Duke University">Duke University</div>'
+        ? '<div data-automation-id="promptOption" data-automation-label="Example University">Example University</div>'
         : '<div data-automation-id="promptOption" data-automation-label="No Items.">No Items.</div>';
     });
     const profile = {
       ...DEFAULT_PROFILE,
-      personal: { ...DEFAULT_PROFILE.personal, city: 'Duke University' },
+      personal: { ...DEFAULT_PROFILE.personal, city: 'Example University' },
     };
     const field: FieldDescriptor = {
       element: trigger,
       label: 'School or University',
       kind: 'combobox',
       profileKey: 'personal.city',
-      candidates: ['Duke University'],
+      candidates: ['Example University'],
     };
 
     expect(await fillComboboxFields([field], profile, {
@@ -1120,27 +1120,27 @@ describe('fillComboboxFields', () => {
       if ((event as KeyboardEvent).key !== 'Enter') return;
       setTimeout(() => {
         portalRoot.innerHTML = `
-          <div data-automation-id="promptOption">BA - Duke University</div>
-          <div data-automation-id="promptOption">Big Data and Hadoop - Duke University</div>
+          <div data-automation-id="promptOption">BA - Example University</div>
+          <div data-automation-id="promptOption">Big Data and Hadoop - Example University</div>
         `;
       }, 2);
       setTimeout(() => {
         portalRoot.insertAdjacentHTML(
           'beforeend',
-          '<div data-automation-id="promptOption" data-automation-label="Duke University">Duke University</div>'
+          '<div data-automation-id="promptOption" data-automation-label="Example University">Example University</div>'
         );
       }, 8);
     });
     const profile = {
       ...DEFAULT_PROFILE,
-      personal: { ...DEFAULT_PROFILE.personal, city: 'Duke University' },
+      personal: { ...DEFAULT_PROFILE.personal, city: 'Example University' },
     };
     const field: FieldDescriptor = {
       element: trigger,
       label: 'School or University',
       kind: 'combobox',
       profileKey: 'personal.city',
-      candidates: ['Duke University'],
+      candidates: ['Example University'],
     };
 
     expect(await fillComboboxFields([field], profile, {
@@ -1148,7 +1148,7 @@ describe('fillComboboxFields', () => {
       maxAttempts: 10,
       queryCommitDelayMs: 0,
     })).toEqual({ filled: 1, flagged: 0 });
-    expect(clicked).toEqual(['Duke University']);
+    expect(clicked).toEqual(['Example University']);
   });
 
   it('clicks the Workday prompt leaf and verifies the selected school chip', async () => {
@@ -1167,7 +1167,7 @@ describe('fillComboboxFields', () => {
       portalRoot.innerHTML = `
         <div role="option" id="duke-row">
           <div data-automation-id="promptLeafNode">
-            <div data-automation-id="promptOption" data-automation-label="Duke University">Duke University</div>
+            <div data-automation-id="promptOption" data-automation-label="Example University">Example University</div>
           </div>
         </div>
       `;
@@ -1179,21 +1179,21 @@ describe('fillComboboxFields', () => {
       leaf.addEventListener('click', () => {
         widget.insertAdjacentHTML(
           'afterbegin',
-          '<div data-automation-id="selectedItem">Duke University</div>'
+          '<div data-automation-id="selectedItem">Example University</div>'
         );
         portalRoot.innerHTML = '';
       });
     });
     const profile = {
       ...DEFAULT_PROFILE,
-      personal: { ...DEFAULT_PROFILE.personal, city: 'Duke University' },
+      personal: { ...DEFAULT_PROFILE.personal, city: 'Example University' },
     };
     const field: FieldDescriptor = {
       element: trigger,
       label: 'School or University',
       kind: 'combobox',
       profileKey: 'personal.city',
-      candidates: ['Duke University'],
+      candidates: ['Example University'],
     };
 
     expect(await fillComboboxFields([field], profile, {
@@ -1202,7 +1202,7 @@ describe('fillComboboxFields', () => {
       queryCommitDelayMs: 0,
     })).toEqual({ filled: 1, flagged: 0 });
     expect(roleOptionClicked).toBe(false);
-    expect(widget.querySelector('[data-automation-id="selectedItem"]')?.textContent).toBe('Duke University');
+    expect(widget.querySelector('[data-automation-id="selectedItem"]')?.textContent).toBe('Example University');
   });
 
   it('adds each saved Workday skill as its own selected item and repairs a legacy combined item', async () => {

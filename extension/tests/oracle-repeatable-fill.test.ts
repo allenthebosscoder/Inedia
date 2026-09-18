@@ -92,7 +92,7 @@ describe('fillOracleRepeatableSections', () => {
     nextId = 1;
     document.body.innerHTML = `
       <apply-flow-block id="education-block">
-        <div class="apply-flow-profile-item-tile">Old Major\nDuke University 08/2024 - 12/2027<button aria-label="Edit"></button></div>
+        <div class="apply-flow-profile-item-tile">Old Major\nExample University 08/2024 - 12/2027<button aria-label="Edit"></button></div>
         <button id="profileItemsAddButton-education" type="button">Add Education</button>
       </apply-flow-block>
       <apply-flow-block id="experience-block">
@@ -113,7 +113,7 @@ describe('fillOracleRepeatableSections', () => {
       ...DEFAULT_PROFILE,
       personal: { ...DEFAULT_PROFILE.personal, city: 'Durham', country: 'United States' },
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
         graduationDate: '05/2027', startDate: '08/2024', endDate: '05/2027',
       }],
       workHistory: [
@@ -122,7 +122,7 @@ describe('fillOracleRepeatableSections', () => {
           startDate: '08/2024', endDate: '', currentlyWorksHere: true, description: '',
         },
         {
-          company: 'Singapore Armed Forces', title: 'Platoon Commander', location: 'Singapore',
+          company: 'Example Labs', title: 'Platoon Commander', location: 'Singapore',
           startDate: '09/2022', endDate: '07/2024', currentlyWorksHere: false, description: '',
         },
       ],
@@ -132,10 +132,10 @@ describe('fillOracleRepeatableSections', () => {
     const educationText = document.querySelector('#education-block .apply-flow-profile-item-tile')!.textContent!;
     const workCards = Array.from(document.querySelectorAll('#experience-block .apply-flow-profile-item-tile'));
 
-    expect(educationText).toContain('Electrical and Computer Engineering\nDuke University\nMay 2027');
+    expect(educationText).toContain('Electrical and Computer Engineering\nExample University\nMay 2027');
     expect(workCards).toHaveLength(2);
     expect(workCards[0].textContent).toContain('Power Systems Lead\nDuke Electric Vehicles\nAugust 2024');
-    expect(workCards[1].textContent).toContain('Platoon Commander\nSingapore Armed Forces\nSeptember 2022');
+    expect(workCards[1].textContent).toContain('Platoon Commander\nExample Labs\nSeptember 2022');
     expect(first.flagged).toBe(0);
 
     await fillOracleRepeatableSections(profile);
@@ -154,9 +154,9 @@ describe('fillOracleRepeatableSections', () => {
     buttons.forEach((button) => button.addEventListener('click', () => { clicks++; }));
     const profile: Profile = {
       ...DEFAULT_PROFILE,
-      education: [{ school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027' }],
+      education: [{ school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027' }],
       workHistory: [{
-        company: 'Duke University', title: 'Teaching Assistant', startDate: '01/2026',
+        company: 'Example University', title: 'Teaching Assistant', startDate: '01/2026',
         endDate: '', currentlyWorksHere: true, description: '',
       }],
     };

@@ -221,11 +221,11 @@ def test_get_profile_returns_valid_shape(client):
     assert resp.status_code == 200
     profile = resp.get_json()
     assert profile["version"] == 1
-    assert profile["personal"]["firstName"] == "Allen Juhyung"
+    assert profile["personal"]["firstName"] == "Example User"
     assert profile["workAuthorization"]["requiresSponsorship"] == "yes"
     assert profile["workAuthorization"]["usPerson"] == "no"
     assert isinstance(profile["workHistory"], list) and len(profile["workHistory"]) > 0
-    assert profile["education"][0]["school"] == "Duke University"
+    assert profile["education"][0]["school"] == "Example University"
 
 
 def test_build_profile_defaults_to_entry_grad_date_with_no_active_profile(tmp_path):
@@ -237,11 +237,11 @@ def test_build_profile_defaults_to_entry_grad_date_with_no_active_profile(tmp_pa
 
 def test_set_active_profile_primes_intern_grad_date_and_resume(tmp_path):
     path = str(tmp_path / "active_profile.json")
-    set_active_profile("Intern", "Allen-Ryu-Acme-SWE.pdf", "data:application/pdf;base64,ZmFrZQ==", path=path)
+    set_active_profile("Intern", "Example-User-Acme-SWE.pdf", "data:application/pdf;base64,ZmFrZQ==", path=path)
     profile = build_profile(path=path)
     assert profile["education"][0]["graduationDate"] == "12/2027"
     assert profile["resume"] == {
-        "name": "Allen-Ryu-Acme-SWE.pdf",
+        "name": "Example-User-Acme-SWE.pdf",
         "type": "application/pdf",
         "dataUrl": "data:application/pdf;base64,ZmFrZQ==",
     }
@@ -286,15 +286,15 @@ def test_build_profile_falls_back_to_full_skills_list_when_none_primed(tmp_path)
     path = str(tmp_path / "active_profile.json")
     set_active_profile("Entry", "resume.pdf", "data:application/pdf;base64,ZmFrZQ==", path=path)
     profile = build_profile(path=path)
-    assert "Claude Code" in profile["professional"]["skills"]
-    assert "Arduino" in profile["professional"]["skills"]
+    assert "Python" in profile["professional"]["skills"]
+    assert "Git" in profile["professional"]["skills"]
 
 
 def test_set_active_profile_primes_role_specific_work_history(tmp_path):
     path = str(tmp_path / "active_profile.json")
     trimmed_history = [
         {
-            "company": "Zhang Lab, Duke University",
+            "company": "Example Labs",
             "title": "Research Intern",
             "location": "Durham, NC",
             "startDate": "2026-05",
@@ -324,7 +324,7 @@ def test_set_active_profile_normalizes_employer_jobtitle_current_aliases(tmp_pat
     path = str(tmp_path / "active_profile.json")
     aliased_history = [
         {
-            "employer": "Zhang Lab, Duke University",
+            "employer": "Example Labs",
             "jobTitle": "Research Intern",
             "location": "Durham, NC",
             "startDate": "05/2026",
@@ -340,7 +340,7 @@ def test_set_active_profile_normalizes_employer_jobtitle_current_aliases(tmp_pat
     )
     profile = build_profile(path=path)
     entry = profile["workHistory"][0]
-    assert entry["company"] == "Zhang Lab, Duke University"
+    assert entry["company"] == "Example Labs"
     assert entry["title"] == "Research Intern"
     assert entry["currentlyWorksHere"] is False
     assert "employer" not in entry
@@ -353,7 +353,7 @@ def test_build_profile_falls_back_to_full_work_history_when_none_primed(tmp_path
     set_active_profile("Entry", "resume.pdf", "data:application/pdf;base64,ZmFrZQ==", path=path)
     profile = build_profile(path=path)
     companies = [entry["company"] for entry in profile["workHistory"]]
-    assert "Singapore Armed Forces" in companies
+    assert "Example Labs" in companies
     assert len(profile["workHistory"]) == 4
 
 
@@ -361,11 +361,11 @@ def test_set_active_profile_primes_role_label(tmp_path):
     path = str(tmp_path / "active_profile.json")
     set_active_profile(
         "Intern", "resume.pdf", "data:application/pdf;base64,ZmFrZQ==",
-        role_label="Amazon - Cloud Hardware Intern",
+        role_label="Example Company - Software Intern",
         path=path,
     )
     profile = build_profile(path=path)
-    assert profile["profileLabel"] == "Amazon - Cloud Hardware Intern"
+    assert profile["profileLabel"] == "Example Company - Software Intern"
 
 
 def test_build_profile_defaults_to_empty_profile_label_when_none_primed(tmp_path):

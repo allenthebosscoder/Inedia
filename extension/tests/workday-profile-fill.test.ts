@@ -19,7 +19,7 @@ describe('fillWorkdayProfileQuestions', () => {
     const profile: Profile = {
       ...DEFAULT_PROFILE,
       workHistory: [{
-        company: 'Duke University', title: 'Teaching Assistant', startDate: '01/2026',
+        company: 'Example University', title: 'Teaching Assistant', startDate: '01/2026',
         endDate: '', currentlyWorksHere: true, description: '',
       }],
     };

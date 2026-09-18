@@ -328,7 +328,7 @@ describe('fillAdpRecruitingForm — Education', () => {
       personal: { ...DEFAULT_PROFILE.personal, city: 'Durham', state: 'NC' },
       education: [
         {
-          school: 'Duke University', degree: 'BSE', fieldOfStudy: 'Electrical & Computer Engineering',
+          school: 'Example University', degree: 'BSE', fieldOfStudy: 'Electrical & Computer Engineering',
           graduationDate: '05/2020', endYear: '2020', location: '',
         },
       ],
@@ -337,7 +337,7 @@ describe('fillAdpRecruitingForm — Education', () => {
     const summary = await fillAdpRecruitingForm(profile, document, { addRowIntervalMs: 1, addRowMaxAttempts: 2 });
 
     expect(row1.level.get('value')).toBe('B'); // BSE -> Bachelor's Level Degree
-    expect(row1.school.get('value')).toBe('Duke University');
+    expect(row1.school.get('value')).toBe('Example University');
     expect(row1.city.get('value')).toBe('Durham'); // falls back to personal.city
     expect(row1.state.get('value')).toBe('NC');
     expect(row1.major.get('value')).toBe('Electrical & Computer Engineering');

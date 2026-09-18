@@ -98,11 +98,11 @@ describe('fillOracleForm', () => {
         disabilityStatus: 'No, I do not have a disability and have not had one in the past',
       },
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '12/2027',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '12/2027',
         startDate: '08/2024', endDate: '12/2027', gpa: '4',
       }],
       workHistory: [{
-        company: 'Singapore Armed Forces', title: 'Platoon Commander', startDate: '09/2022',
+        company: 'Example Labs', title: 'Platoon Commander', startDate: '09/2022',
         endDate: '07/2024', description: '',
       }],
     };

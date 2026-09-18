@@ -97,7 +97,7 @@ describe('syncProfileFromJobTracker', () => {
     const remote = {
       ...DEFAULT_PROFILE,
       workHistory: [{ company: 'Duke Electric Vehicles', title: 'Power Systems Lead', startDate: '2024-08', endDate: '', description: '' }],
-      education: [{ school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: 'May 2027' }],
+      education: [{ school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: 'May 2027' }],
     };
     stubFetchOk(remote);
 
@@ -151,12 +151,12 @@ describe('syncProfileFromJobTracker', () => {
   });
 
   it('renames the JobTracker profile to show the role label JobTracker provides', async () => {
-    stubFetchOk({ ...DEFAULT_PROFILE, profileLabel: 'Amazon - Cloud Hardware Intern' });
+    stubFetchOk({ ...DEFAULT_PROFILE, profileLabel: 'Example Company - Software Intern' });
 
     await syncProfileFromJobTracker();
 
     const summaries = await listProfiles();
-    expect(summaries.map((p) => p.name)).toContain('Custom (Amazon - Cloud Hardware Intern)');
+    expect(summaries.map((p) => p.name)).toContain('Custom (Example Company - Software Intern)');
     expect(summaries.map((p) => p.name)).not.toContain(JOBTRACKER_PROFILE_NAME);
   });
 

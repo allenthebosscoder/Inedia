@@ -77,7 +77,7 @@ describe('multiple-choice summary counting', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical and Computer Engineering',
         graduationDate: '05/2027', gpa: '4.0',
       }],
     };
@@ -85,7 +85,7 @@ describe('multiple-choice summary counting', () => {
       element: document.createElement('input'), label: 'test', kind: 'text' as const, profileKey,
     });
 
-    expect(resolveProfileValueForField(profile, fieldFor('education.school'))).toBe('Duke University');
+    expect(resolveProfileValueForField(profile, fieldFor('education.school'))).toBe('Example University');
     expect(resolveProfileValueForField(profile, fieldFor('education.degree'))).toBe('BS');
     expect(resolveProfileValueForField(profile, fieldFor('education.fieldOfStudy'))).toBe('Electrical and Computer Engineering');
     expect(resolveProfileValueForField(profile, fieldFor('education.gpa'))).toBe('4.0');
@@ -113,7 +113,7 @@ describe('multiple-choice summary counting', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
         gpa: '4.0',
       }],
     };
@@ -134,7 +134,7 @@ describe('multiple-choice summary counting', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
         gpa: '4.0',
       }],
     };
@@ -160,7 +160,7 @@ describe('multiple-choice summary counting', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
         gpa: '4.0',
       }],
     };

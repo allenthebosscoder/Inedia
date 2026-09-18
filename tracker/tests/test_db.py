@@ -142,6 +142,7 @@ def test_init_db_creates_seen_jobs_and_daily_picks(tmp_path):
         "salary", "term", "app_type", "heuristic_score", "rank", "reasoning",
         "description", "first_run_date", "last_run_date", "status",
         "application_id", "created_at", "updated_at", "locations",
+        "priority",
     }
 
 

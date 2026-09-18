@@ -34,15 +34,15 @@ def test_run_seed_maps_incomplete_statuses(tmp_path):
     run_seed(db_path)
 
     conn = get_db(db_path)
-    emory = conn.execute(
-        "SELECT status FROM applications WHERE company = ?", ("Emory University",)
+    acme = conn.execute(
+        "SELECT status FROM applications WHERE company = ?", ("Acme",)
     ).fetchone()
-    amazon = conn.execute(
-        "SELECT status FROM applications WHERE company = ?", ("Amazon",)
+    beta = conn.execute(
+        "SELECT status FROM applications WHERE company = ?", ("Beta",)
     ).fetchone()
     conn.close()
-    assert emory["status"] == "Incomplete"
-    assert amazon["status"] == "Incomplete"
+    assert acme["status"] == "Incomplete"
+    assert beta["status"] == "Incomplete"
 
 
 def test_run_seed_no_invalid_statuses_or_types(tmp_path):

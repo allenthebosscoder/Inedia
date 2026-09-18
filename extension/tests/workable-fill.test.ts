@@ -52,13 +52,13 @@ describe('Workable fill', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
         startDate: '2024-08', endDate: '2025-12', graduationDate: '', gpa: '4',
       }],
     };
 
     const summary = await fillWorkableForm(profile);
-    expect(group.querySelector('[data-ui="school"]')?.textContent).toBe('Duke University');
+    expect(group.querySelector('[data-ui="school"]')?.textContent).toBe('Example University');
     expect(summary).toEqual({ filled: 5, flagged: 0 });
 
     expect(await fillWorkableForm(profile)).toEqual({ filled: 0, flagged: 0 });
@@ -78,7 +78,7 @@ describe('Workable fill', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
         startDate: '2024-08', endDate: '2025-12', graduationDate: '', gpa: '4',
       }],
     };
@@ -117,7 +117,7 @@ describe('Workable fill', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical Engineering',
         startDate: '2024-08', endDate: '2025-12', graduationDate: '', gpa: '4',
       }],
     };

@@ -27,7 +27,7 @@ describe('fillIcimsForm', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BSE', fieldOfStudy: 'ECE',
+        school: 'Example University', degree: 'BSE', fieldOfStudy: 'ECE',
         graduationDate: `05/${futureYear}`, endYear: String(futureYear), gpa: '3.82',
       }],
     };
@@ -97,7 +97,7 @@ describe('fillIcimsForm', () => {
     const profile = {
       ...DEFAULT_PROFILE,
       education: [{
-        school: 'Duke University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
+        school: 'Example University', degree: 'BS', fieldOfStudy: 'ECE', graduationDate: '05/2027',
         startDate: '08/2023', endDate: '05/2027', gpa: '3.8',
       }],
     };

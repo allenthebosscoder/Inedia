@@ -170,11 +170,11 @@ describe('fillWorkdayRepeatableSections', () => {
 
     await fillWorkdayRepeatableSections({
       ...DEFAULT_PROFILE,
-      education: [{ school: 'Duke University', degree: 'BS', fieldOfStudy: 'Engineering', graduationDate: '' }],
+      education: [{ school: 'Example University', degree: 'BS', fieldOfStudy: 'Engineering', graduationDate: '' }],
     });
 
     expect(workClicks).toBe(0);
-    expect((document.getElementById('education-1--school') as HTMLInputElement).value).toBe('Duke University');
+    expect((document.getElementById('education-1--school') as HTMLInputElement).value).toBe('Example University');
   });
 
   it('clicks Add for every saved experience and fills each new row', async () => {

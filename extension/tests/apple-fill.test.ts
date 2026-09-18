@@ -65,7 +65,7 @@ function profile(current = false): Profile {
     ...DEFAULT_PROFILE,
     personal: { ...DEFAULT_PROFILE.personal, addressLine2: '' },
     education: [{
-      school: 'Duke University', degree: 'BS', fieldOfStudy: 'Electrical & Computer Engineering',
+      school: 'Example University', degree: 'BS', fieldOfStudy: 'Electrical & Computer Engineering',
       graduationDate: '05/2027', startDate: '08/2024', endDate: '05/2027', gpa: '4.00',
     }],
     workHistory: [{
@@ -98,7 +98,7 @@ describe('fillAppleForm', () => {
     });
 
     expect((document.getElementById('profile-field-line2') as HTMLInputElement).value).toBe('');
-    expect((document.getElementById('parsedmodal-school-0-suggestion-textbox') as HTMLInputElement).value).toBe('Duke University');
+    expect((document.getElementById('parsedmodal-school-0-suggestion-textbox') as HTMLInputElement).value).toBe('Example University');
     expect((document.getElementById('parsedmodal-major-0-suggestion-textbox') as HTMLInputElement).value).toBe('Electrical & Computer Engineering');
     expect((document.getElementById('parsedmodal-degree-0') as HTMLSelectElement).value).toBe('educationDegree-BA');
     expect((document.getElementById('parsedmodal-gradstatus-0-graduationStatus-SA') as HTMLInputElement).checked).toBe(true);

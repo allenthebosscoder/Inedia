@@ -13,9 +13,9 @@ STATIC_PROFILE = {
     "version": 1, "personal": {"firstName": "", "middleName": "", "lastName": "", "email": "", "phone": "", "address": "", "addressLine2": "", "city": "", "county": "", "country": "", "state": "", "zip": "", "phoneType": "", "phoneCountryCode": ""},
     "workAuthorization": {"authorizedToWork": "", "requiresSponsorship": "", "plansToUseOPT": "", "usPerson": "", "restrictedCountryStatus": ""},
     "jobPreferences": {"availableStartDate": "", "atLeast18": "", "minimumSalary": "", "compensationMax": "", "usCitizen": "", "securityClearance": "", "willingToRelocate": "", "willingToWorkOnsite": "", "canCommitInternshipTerm": ""},
-    "professional": {"hasNonCompeteAgreement": "", "everTerminated": "", "highestEducation": "", "skills": ""},
+    "professional": {"hasNonCompeteAgreement": "", "everTerminated": "", "highestEducation": "bachelors", "skills": "Python, JavaScript, Git"},
     "disclosures": {"hispanicOrLatino": "", "gender": "", "raceEthnicity": "", "veteranStatus": "", "disabilityStatus": ""},
-    "links": {"linkedin": "", "portfolio": "", "github": ""}, "workHistory": [], "education": [], "overrides": {},
+    "links": {"linkedin": "", "portfolio": "", "github": ""}, "workHistory": [{"company": "Example Labs", "title": "Software Intern", "location": "Example City", "startDate": "2025-05", "endDate": "", "currentlyWorksHere": True, "description": "Built and tested software systems."}], "education": [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": "05/2027", "startDate": "2023-08", "endDate": "05/2027", "gpa": ""}], "overrides": {},
 }
 
 try:
@@ -35,9 +35,10 @@ def build_profile(path=ACTIVE_PROFILE_PATH):
         profile["resume"] = {"name": active["resume_name"], "type": "application/pdf", "dataUrl": active["resume_data_url"]}
     else: profile["resume"] = None
     if active.get("skills"): profile["professional"]["skills"] = active["skills"]
-    if active.get("work_history"): profile["workHistory"] = active["work_history"]
+    if active.get("work_history"):
+        profile["workHistory"] = [{"company": e.get("company", e.get("employer", "")), "title": e.get("title", e.get("jobTitle", "")), "location": e.get("location", ""), "startDate": e.get("startDate", ""), "endDate": e.get("endDate", ""), "currentlyWorksHere": e.get("currentlyWorksHere", e.get("current", False)), "description": e.get("description", "")} for e in active["work_history"]]
     profile["profileLabel"] = active.get("role_label") or ""
-    profile["education"] = profile.get("education", [])
+    profile["education"] = [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, GRAD_DATE_BY_TYPE["Entry"]), "startDate": "2023-08", "endDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, GRAD_DATE_BY_TYPE["Entry"]), "gpa": ""}]
     return profile
 
 def set_active_profile(role_type, resume_name, resume_data_url, skills=None, work_history=None, role_label=None, grad_date=None, target_profile_name=None, path=ACTIVE_PROFILE_PATH):
