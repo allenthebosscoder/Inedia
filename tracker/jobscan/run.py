@@ -13,7 +13,6 @@ from db import get_db, init_db
 from jobscan import seen
 from jobscan.adapters.base import BlockedError, dedup_key
 from jobscan.adapters.jobright import LoginRequired as JobrightLogin
-from jobscan.adapters.runway import LoginRequired as RunwayLogin
 from jobscan.hardfilter import hardfilter, resolve_term
 from jobscan.prefilter import prefilter
 from jobscan.score import score
@@ -214,7 +213,7 @@ def run(db_path, feed_adapters, swelist_adapter, swelist_links, page, out_dir,
                     else:
                         s["candidates"] += 1
                         say("      → candidate")
-            except (JobrightLogin, RunwayLogin):
+            except JobrightLogin:
                 # A dead / logged-out session must abort the whole scan, not
                 # be swallowed as a per-adapter error -- scripts/scan_jobs.py
                 # catches this and tells Allen to log in again.

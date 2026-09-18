@@ -43,14 +43,14 @@ batch — `run.py` now hands detail lookups a separate tab
 `/jobs/recommend` (1 card) instead of `/jobs` (the real list); the list's
 virtualization responds to real mouse-wheel events, not `scrollTop`.
 
-**runway: DONE and confirmed live (2026-09-05).** `--only runway` scanned
+**jobright: DONE and confirmed live (2026-09-05).** `--only jobright` scanned
 34 real postings, 22 candidates (16 after cross-source/duplicate-listing
 dedup), 0 errors. Needed one more live fix: the JD side-panel is a Radix
 dialog overlay, not a real navigation — `page.go_back()` didn't actually
 dismiss it, so it stayed open and blocked every click on the next row
 (30s timeout each). Fixed by pressing Escape and verifying the dialog is
 actually gone before moving on, with an off-dialog click and a hard reload
-as escalating fallbacks (`_close_detail_dialog` in `runway.py`).
+as escalating fallbacks (`_close_detail_dialog` in `jobright.py`).
 
 **swelist: DONE and confirmed live (2026-09-05).** `--only swelist` against
 a real 118-link SWElist digest: 118 scanned, 69 candidates (56 after
@@ -72,7 +72,7 @@ posting (SmartRecruiters, Workday, a company's own careers page, ...), a
 different template every time, so `extract_detail` does a generic
 full-page text scrape instead of reading a site-specific selector.
 Pagination is a plain "Load More Listings" button, not virtualized
-scroll — simpler than jobright/runway.
+scroll — simpler than jobright/jobright.
 
 **All four sources are now shakedown-complete.** Remaining before daily
 use is routine: build the `daily_run/swelist_links.json` step into the
@@ -84,7 +84,7 @@ full combined run (`scan_jobs.py` with no `--only`) end to end onto the
   dead session shows as a 0-card run, not an explicit error — see below)
 
 Run: `python3 scripts/chrome_login.py` (log into jobright.ai +
-app.joinrunway.io), then `python3 scripts/scan_jobs.py`, then follow
+jobright.ai), then `python3 scripts/scan_jobs.py`, then follow
 `docs/daily-scan-runbook.md`. Expect to tune `jobscan/criteria.py` and a
 few adapter selectors against the first real run.
 
@@ -138,7 +138,7 @@ General Matter → clearance.
 
 - **Ashby, Lever** — not in the router yet (`api.ashbyhq.com/posting-api/…`,
   `api.lever.co/v0/postings/…`). Ashby's public API has no questions.
-- **jobright / runway** — still pure page scrapes, no ATS-URL extraction,
+- **jobright / jobright** — still pure page scrapes, no ATS-URL extraction,
   so their picks' sponsorship is unverified (CDM Smith stays a miss).
   Both link to the real posting via an Apply button whose href could be
   pulled during the scrape.
@@ -205,7 +205,7 @@ pushed separately:
 - `jobscan/seen.py::bump()` is now wired into `run.py`'s `is_seen`
   callback, so a job that's still actively listed on a repeat scan gets
   its `last_seen` refreshed instead of looking stale forever.
-- `runway`/`jobright` adapters: `SELECTORS` annotated `dict[str, str]`.
+- `jobright`/`jobright` adapters: `SELECTORS` annotated `dict[str, str]`.
 
 ## Still open
 
@@ -217,13 +217,13 @@ pushed separately:
   should not fire when an in-season start (summer / Aug / Sep of the grad
   year) is offered as an alternative in the same clause.
 - **DONE 2026-09-10 (commit 39a3be2): adapters read the real ATS JD.**
-  jobright/runway/swelist resolve to the actual posting the aggregator
+  jobright/jobright/swelist resolve to the actual posting the aggregator
   links to and read *that* (`fetch_ats_detail` JSON API, else
   `fetch_jd_via_browser` renders + scrapes body text); the aggregator's
   own thin summary is only the last resort; `posting.url` is now the real
   URL. jobright uses the "Original Job Post" `<a href>` (carries
   `?for=&token=`), swelist follows `simplify.jobs/jobs/click/{uuid}` in a
-  browser (a HEAD request dropped the `?for=&token=` query), runway clicks
+  browser (a HEAD request dropped the `?for=&token=` query), jobright clicks
   "Apply to Job" and captures the popup URL. `greenhouse_api_url` reads
   the board slug from `?for=`. `scripts/rank_picks.py --verify`
   (`_fresh_jd`) uses the same path. Live: CACI-Lisle + GD Mission Systems
@@ -232,7 +232,7 @@ pushed separately:
   cached `candidate` from before this commit keeps its thin JD until a
   `reset_seen` or `--verify` pass. iCIMS / Workday bot-wall on some reqs →
   tracked `blocked`, expected.
-- `runway` `_find_row` / `detail_fulljd` `[role="region"]` take the first
+- `jobright` `_find_row` / `detail_fulljd` `[role="region"]` take the first
   match — could click the wrong row / read the wrong Radix region on a
   live page. Needs more live testing against a page with multiple
   candidate matches before it's safe to fix blind (Task 20).

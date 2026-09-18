@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A manual-trigger pipeline that scrapes jobright.ai + runway.io (and the SWElist digest email), auto-drops clear non-fits, and surfaces ~15 ranked picks with reasoning on a new `/picks` page in the tracker app, each with a one-click path to an `applications` row.
+**Goal:** A manual-trigger pipeline that scrapes jobright.ai + jobright.ai (and the SWElist digest email), auto-drops clear non-fits, and surfaces ~15 ranked picks with reasoning on a new `/picks` page in the tracker app, each with a one-click path to an `applications` row.
 
 **Architecture:** A new `jobscan/` Python package does all mechanical work: pure filter/score functions, a `seen_jobs` cache, Playwright adapters (driving system Google Chrome via `channel="chrome"`) that parse each source, and a `run.py` orchestrator that writes a JSON run artifact. `scripts/scan_jobs.py` is the entry point Claude runs from chat. Claude then reads the artifact, dedupes/ranks/writes reasoning, and `POST`s the picks to the Flask app. The app gains two tables (`seen_jobs`, `daily_picks`), four JSON endpoints, and a vanilla-JS `/picks` page with Today / Carried-over / Applied-today sections and Applied + Delete buttons.
 
@@ -19,7 +19,7 @@
 - **Playwright uses `channel="chrome"`** (system Google Chrome at `/Applications/Google Chrome.app`) — never bundled Chromium, no `playwright install` download step required. Scraper runs headed (`headless=False`).
 - **Dedicated Chrome profile** at `~/.jobtracker/chrome-profile` (persistent context) — never Allen's everyday Chrome profile.
 - **`salary` is display-only** — never an input to `prefilter`, `hardfilter`, or `score`.
-- **`job_key` format:** `f"{source}:{external_id}"` where `source ∈ {jobright, runway, swelist}`. For SWElist, `external_id` comes from the *resolved* posting URL (post simplify.jobs redirect).
+- **`job_key` format:** `f"{source}:{external_id}"` where `source ∈ {jobright, jobright, swelist}`. For SWElist, `external_id` comes from the *resolved* posting URL (post simplify.jobs redirect).
 - **Server on port 8080.** Tests use Flask's `test_client()` and never bind a port. The dev server has no auto-reload — after editing `app.py`/`db.py` a manual restart is needed for live use (not for tests).
 - Python 3.14, `playwright==1.62.0` already installed. Run tests with `python3 -m pytest -v`.
 - Frontend JS follows `static/app.js` conventions: vanilla `fetch`, `async` functions, no framework, `document.createElement` (no `innerHTML` string building except clearing with `""`).
@@ -193,7 +193,7 @@ def test_job_key():
 
 def test_external_id_from_url_strips_query_and_slash():
     assert external_id_from_url("https://jobright.ai/jobs/abc123?ref=x") == "abc123"
-    assert external_id_from_url("https://runway.io/p/xyz/") == "xyz"
+    assert external_id_from_url("https://jobright.ai/p/xyz/") == "xyz"
 
 
 def test_jobposting_is_a_jobcard():
@@ -1120,7 +1120,7 @@ Create `jobscan/profile.py`:
 
 ```python
 """Dedicated, persistent Chrome profile for the scraper. Allen logs into
-jobright + runway once in this profile; the session persists across runs.
+jobright + jobright once in this profile; the session persists across runs.
 Never touches Allen's everyday Chrome profile."""
 from __future__ import annotations
 
@@ -1441,40 +1441,40 @@ git commit -m "feat: add jobright.ai adapter"
 
 ---
 
-## Task 10: runway.io adapter
+## Task 10: jobright.ai adapter
 
 **Files:**
-- Create: `jobscan/adapters/runway.py`
-- Create: `tests/fixtures/runway/feed.html`, `detail_clean.html`, `detail_sponsorship.html`, `detail_fall_term.html` (captured)
-- Create: `tests/test_adapter_runway.py`
+- Create: `jobscan/adapters/jobright.py`
+- Create: `tests/fixtures/jobright/feed.html`, `detail_clean.html`, `detail_sponsorship.html`, `detail_fall_term.html` (captured)
+- Create: `tests/test_adapter_jobright.py`
 
 **Interfaces:**
 - Consumes: `jobscan.adapters.base`, `scripts/capture_fixture.py` (from Task 9).
-- Produces: `jobscan.adapters.runway.RunwayAdapter` with `source = "runway"`, same method set as `JobrightAdapter` (`feed_url`, `walk_feed(page, is_seen=...)`, `extract_detail(page, card)`).
-- Produces: `jobscan.adapters.runway.parse_cards(page) -> list[JobCard]`, `parse_detail(page, card) -> JobPosting`, `SELECTORS: dict[str,str]`, `LoginRequired`.
+- Produces: `jobscan.adapters.jobright.RunwayAdapter` with `source = "jobright"`, same method set as `JobrightAdapter` (`feed_url`, `walk_feed(page, is_seen=...)`, `extract_detail(page, card)`).
+- Produces: `jobscan.adapters.jobright.parse_cards(page) -> list[JobCard]`, `parse_detail(page, card) -> JobPosting`, `SELECTORS: dict[str,str]`, `LoginRequired`.
 
 - [ ] **Step 1: Capture real fixtures (manual, needs Allen logged in)**
 
 ```bash
-python3 scripts/capture_fixture.py "<runway.io recommended-jobs feed URL>" tests/fixtures/runway/feed.html
-python3 scripts/capture_fixture.py "<clean US intern posting>"             tests/fixtures/runway/detail_clean.html
-python3 scripts/capture_fixture.py "<no-sponsorship posting>"              tests/fixtures/runway/detail_sponsorship.html
-python3 scripts/capture_fixture.py "<Fall/Spring-only internship>"         tests/fixtures/runway/detail_fall_term.html
+python3 scripts/capture_fixture.py "<jobright.ai recommended-jobs feed URL>" tests/fixtures/jobright/feed.html
+python3 scripts/capture_fixture.py "<clean US intern posting>"             tests/fixtures/jobright/detail_clean.html
+python3 scripts/capture_fixture.py "<no-sponsorship posting>"              tests/fixtures/jobright/detail_sponsorship.html
+python3 scripts/capture_fixture.py "<Fall/Spring-only internship>"         tests/fixtures/jobright/detail_fall_term.html
 ```
 
 Inspect each and record the per-card and detail selectors in `SELECTORS`.
 
 - [ ] **Step 2: Write the failing test**
 
-Create `tests/test_adapter_runway.py`:
+Create `tests/test_adapter_jobright.py`:
 
 ```python
 from pathlib import Path
-from jobscan.adapters.runway import parse_cards, parse_detail
+from jobscan.adapters.jobright import parse_cards, parse_detail
 from jobscan.adapters.base import JobCard
 from jobscan.hardfilter import hardfilter
 
-FX = Path(__file__).parent / "fixtures/runway"
+FX = Path(__file__).parent / "fixtures/jobright"
 
 
 def load(chrome_page, name):
@@ -1485,41 +1485,41 @@ def load(chrome_page, name):
 def test_parse_cards_returns_jobcards(chrome_page):
     cards = parse_cards(load(chrome_page, "feed.html"))
     assert len(cards) >= 1
-    assert cards[0].source == "runway"
+    assert cards[0].source == "jobright"
     assert cards[0].company and cards[0].role and cards[0].url and cards[0].external_id
 
 
 def test_parse_detail_clean(chrome_page):
-    card = JobCard("runway", "x", "u", "Acme", "Firmware Intern", "Austin, TX", "", "")
+    card = JobCard("jobright", "x", "u", "Acme", "Firmware Intern", "Austin, TX", "", "")
     posting = parse_detail(load(chrome_page, "detail_clean.html"), card)
     assert len(posting.description) > 100
     assert hardfilter(posting) is None
 
 
 def test_parse_detail_sponsorship_is_dropped(chrome_page):
-    card = JobCard("runway", "x", "u", "Acme", "SWE Intern", "Austin, TX", "", "")
+    card = JobCard("jobright", "x", "u", "Acme", "SWE Intern", "Austin, TX", "", "")
     posting = parse_detail(load(chrome_page, "detail_sponsorship.html"), card)
     assert hardfilter(posting) == "no-sponsorship"
 
 
 def test_parse_detail_fall_term_is_dropped(chrome_page):
-    card = JobCard("runway", "x", "u", "Acme", "SWE Intern", "Austin, TX", "", "")
+    card = JobCard("jobright", "x", "u", "Acme", "SWE Intern", "Austin, TX", "", "")
     posting = parse_detail(load(chrome_page, "detail_fall_term.html"), card)
     assert hardfilter(posting) == "term:Fall/Spring"
 ```
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `python3 -m pytest tests/test_adapter_runway.py -v`
-Expected: FAIL — `ModuleNotFoundError: No module named 'jobscan.adapters.runway'`
+Run: `python3 -m pytest tests/test_adapter_jobright.py -v`
+Expected: FAIL — `ModuleNotFoundError: No module named 'jobscan.adapters.jobright'`
 
 - [ ] **Step 4: Implement**
 
-Create `jobscan/adapters/runway.py` with the same structure as `jobscan/adapters/jobright.py` (Task 9 Step 4): module-level `MAX_CARDS = 300`, `CONSECUTIVE_SEEN_STOP = 15`, `SELECTORS` dict with the same keys, `LoginRequired`, `feed_url()`, `_text(el)`, `parse_cards(page)`, `parse_detail(page, card)`, `parse_detail_via_goto(page, card)`, and:
+Create `jobscan/adapters/jobright.py` with the same structure as `jobscan/adapters/jobright.py` (Task 9 Step 4): module-level `MAX_CARDS = 300`, `CONSECUTIVE_SEEN_STOP = 15`, `SELECTORS` dict with the same keys, `LoginRequired`, `feed_url()`, `_text(el)`, `parse_cards(page)`, `parse_detail(page, card)`, `parse_detail_via_goto(page, card)`, and:
 
 ```python
 class RunwayAdapter:
-    source = "runway"
+    source = "jobright"
 
     def feed_url(self) -> str:
         return feed_url()
@@ -1528,7 +1528,7 @@ class RunwayAdapter:
         page.goto(self.feed_url(), wait_until="domcontentloaded")
         page.wait_for_timeout(2500)
         if SELECTORS["login_wall"] and page.query_selector(SELECTORS["login_wall"]):
-            raise LoginRequired("runway")
+            raise LoginRequired("jobright")
 
         emitted: set[str] = set()
         consecutive_seen = 0
@@ -1557,18 +1557,18 @@ class RunwayAdapter:
         return parse_detail_via_goto(page, card)
 ```
 
-Set `feed_url()` to the runway.io recommended-jobs URL found in Step 1. In `parse_cards`, build absolute URLs against `https://runway.io` if hrefs are relative.
+Set `feed_url()` to the jobright.ai recommended-jobs URL found in Step 1. In `parse_cards`, build absolute URLs against `https://jobright.ai` if hrefs are relative.
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `python3 -m pytest tests/test_adapter_runway.py -v`
+Run: `python3 -m pytest tests/test_adapter_jobright.py -v`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add jobscan/adapters/runway.py tests/fixtures/runway/ tests/test_adapter_runway.py
-git commit -m "feat: add runway.io adapter"
+git add jobscan/adapters/jobright.py tests/fixtures/jobright/ tests/test_adapter_jobright.py
+git commit -m "feat: add jobright.ai adapter"
 ```
 
 ---
@@ -1720,7 +1720,7 @@ git commit -m "feat: add SWElist simplify.jobs adapter"
   {
     "generated_at": "2026-09-02T13:30:00Z",
     "summary": {"jobright": {"scanned": N, "prefiltered": N, "hardfiltered": N, "candidates": N},
-                "runway": {...}, "swelist": {...}},
+                "jobright": {...}, "swelist": {...}},
     "candidates": [ {**JobPosting fields, "term": str, "app_type": str, "heuristic_score": int} ],
     "dropped": [ {"job_key": str, "reason": str, "company": str, "role": str} ],
     "errors": [ {"url": str, "error": str} ],
@@ -2015,7 +2015,7 @@ git commit -m "feat: add scan orchestrator and run artifact"
 - Create: `tests/test_scan_jobs_cli.py`
 
 **Interfaces:**
-- Consumes: `jobscan.profile.launch`, `jobscan.run.run`, adapter classes, `jobscan.adapters.jobright.LoginRequired`, `jobscan.adapters.runway.LoginRequired`.
+- Consumes: `jobscan.profile.launch`, `jobscan.run.run`, adapter classes, `jobscan.adapters.jobright.LoginRequired`, `jobscan.adapters.jobright.LoginRequired`.
 - Produces: `scripts/scan_jobs.py` runnable as `python3 scripts/scan_jobs.py [--db tracker.db] [--out daily_run] [--headless] [--no-swelist]`. Reads `daily_run/swelist_links.json` if present (a JSON list of `{url, company_hint, role_hint}`). Launches the persistent Chrome context, calls `run.run(...)`, prints a one-line-per-source summary + the artifact path. On `LoginRequired`, prints which site needs login and exits 2 without writing.
 - Produces: `scripts.scan_jobs.load_swelist_links(path) -> list[dict]` — `[]` if the file is missing; validates each entry has a `url`.
 - Produces: `scripts.scan_jobs.format_summary(artifact: dict) -> str` — the human summary string.
@@ -2074,7 +2074,7 @@ the printed artifact path.
 
     python3 scripts/scan_jobs.py
 
-First run: Chrome opens to a login wall — log into jobright.ai and runway.io
+First run: Chrome opens to a login wall — log into jobright.ai and jobright.ai
 in that window, then rerun. The session persists in ~/.jobtracker/chrome-profile.
 """
 from __future__ import annotations
@@ -2087,7 +2087,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from jobscan.adapters.jobright import JobrightAdapter, LoginRequired as JobrightLogin
-from jobscan.adapters.runway import RunwayAdapter, LoginRequired as RunwayLogin
+from jobscan.adapters.jobright import RunwayAdapter, LoginRequired as RunwayLogin
 from jobscan.adapters.swelist import SwelistAdapter
 from jobscan.profile import launch
 from jobscan.run import run
@@ -2924,7 +2924,7 @@ Add a section:
 ```markdown
 ## Daily job scan
 
-`jobscan/` scrapes jobright.ai + runway.io (and SWElist digest links) and
+`jobscan/` scrapes jobright.ai + jobright.ai (and SWElist digest links) and
 surfaces ~15 ranked picks at http://localhost:8080/picks.
 
 One-time setup:
@@ -3048,7 +3048,7 @@ git commit -m "fix: adapter selector adjustments from live shakedown"
 | SWElist link extraction (Claude step 0, testable pure fn) | 7 |
 | dedicated persistent Chrome profile, `channel="chrome"` | 8 |
 | Playwright + Chrome fixture testing | 8, 9, 10, 11, 18 |
-| jobright / runway feed adapters (walk_feed stop conditions) | 9, 10 |
+| jobright / jobright feed adapters (walk_feed stop conditions) | 9, 10 |
 | SWElist adapter (`resolve_and_extract`, simplify.jobs redirect) | 11 |
 | `run.py` orchestration + run artifact JSON | 12 |
 | dedupe within batch across sources | 12 (by job_key) + runbook (fuzzy company/role) |
@@ -3092,4 +3092,4 @@ No inconsistencies found.
 
 Which approach?
 
-Note: Tasks 9, 10, 11, and 20 have manual capture/login steps that need you present (logged into jobright.ai, runway.io, and a recent SWElist email handy). Tasks 1–8 and 14–17 are fully automated and can run start to finish without you.
+Note: Tasks 9, 10, 11, and 20 have manual capture/login steps that need you present (logged into jobright.ai, jobright.ai, and a recent SWElist email handy). Tasks 1–8 and 14–17 are fully automated and can run start to finish without you.

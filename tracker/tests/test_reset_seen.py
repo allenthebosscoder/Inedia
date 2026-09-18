@@ -16,13 +16,13 @@ def _seed(db_path):
     conn = get_db(db_path)
     conn.executemany(
         "INSERT INTO seen_jobs (job_key, source, url, disposition, drop_reason) "
-        "VALUES (?, 'runway', 'u', 'dropped', ?)",
+        "VALUES (?, 'jobright', 'u', 'dropped', ?)",
         [("k1", "prefilter:location"), ("k2", "prefilter:location"), ("k3", "no-sponsorship")],
     )
     for jk, status in [("k1", "new"), ("k3", "applied")]:
         conn.execute(
             "INSERT INTO daily_picks (job_key, source, url, company, role, "
-            "first_run_date, last_run_date, status) VALUES (?, 'runway', 'u', 'C', 'R', "
+            "first_run_date, last_run_date, status) VALUES (?, 'jobright', 'u', 'C', 'R', "
             "'2026-09-01', '2026-09-01', ?)",
             (jk, status),
         )

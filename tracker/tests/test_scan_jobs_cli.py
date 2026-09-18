@@ -59,7 +59,7 @@ def test_show_flag_opts_into_a_visible_browser_for_debugging():
 
 def test_select_sources_only_swelist_skips_both_feeds():
     feeds, swelist, links = scan_jobs._select_sources(
-        "swelist", {"jobright": "JR", "runway": "RW"}, [{"url": "x"}])
+        "swelist", {"jobright": "JR", "jobright": "RW"}, [{"url": "x"}])
     assert feeds == []
     assert swelist is not None
     assert links == [{"url": "x"}]
@@ -67,7 +67,7 @@ def test_select_sources_only_swelist_skips_both_feeds():
 
 def test_select_sources_only_one_feed_skips_swelist():
     feeds, swelist, links = scan_jobs._select_sources(
-        "jobright", {"jobright": "JR", "runway": "RW"}, [{"url": "x"}])
+        "jobright", {"jobright": "JR", "jobright": "RW"}, [{"url": "x"}])
     assert feeds == ["JR"]
     assert swelist is None
     assert links == []
@@ -75,7 +75,7 @@ def test_select_sources_only_one_feed_skips_swelist():
 
 def test_select_sources_full_run_scans_everything():
     feeds, swelist, links = scan_jobs._select_sources(
-        None, {"jobright": "JR", "runway": "RW"}, [{"url": "x"}])
+        None, {"jobright": "JR", "jobright": "RW"}, [{"url": "x"}])
     assert feeds == ["JR", "RW"]
     assert swelist is not None
     assert links == [{"url": "x"}]

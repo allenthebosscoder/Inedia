@@ -66,7 +66,7 @@ def _fresh_jd(c: dict, page) -> tuple[str, str]:
             real = strip_tracking(page.url)
         except Exception:  # noqa: BLE001
             real = url
-    if real and "simplify.jobs" not in real and "joinrunway" not in real:
+    if real and "simplify.jobs" not in real and "joinjobright" not in real:
         t = source_jd(page, strip_tracking(real), company) if page is not None \
             else (fetch_ats_detail(real, company) or "")
         if t and not looks_blocked(t):

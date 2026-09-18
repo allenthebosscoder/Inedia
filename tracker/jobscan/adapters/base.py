@@ -76,7 +76,7 @@ def _norm(s: str) -> str:
 
 def dedup_key(company: str, role: str) -> str:
     """Cross-source identity for a posting: `"<norm company>|<sorted norm role words>"`.
-    jobright and runway list the same jobs under different source-specific
+    jobright and jobright list the same jobs under different source-specific
     ids; this collapses them so an Applied/Deleted pick stays gone. The role
     words are sorted so "Software Engineer Associate" and "Associate Software
     Engineer" (feed vs. tracker word order) match -- a reordered title almost

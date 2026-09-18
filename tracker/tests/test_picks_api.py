@@ -180,7 +180,7 @@ def _seen_row(client, job_key):
 def test_bulk_stores_locations_and_dedup_key(client):
     body = _bulk_body(locations=[
         {"location": "Austin, TX", "url": "u1", "source": "jobright"},
-        {"location": "Denver, CO", "url": "u2", "source": "runway"},
+        {"location": "Denver, CO", "url": "u2", "source": "jobright"},
     ])
     client.post("/api/picks/bulk", json=body)
     pick = client.get("/api/picks").get_json()[0]

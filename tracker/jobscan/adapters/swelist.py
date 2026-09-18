@@ -24,7 +24,7 @@ Fixture reality (tests/fixtures/swelist/simplify_posting.html, task-11-report.md
     ``<div class="description">`` that is in the DOM but starts hidden. Both
     live inside one ``<div class="mt-4">`` wrapper, so that wrapper's
     ``text_content()`` is the fullest JD text and is readable even while the
-    full-posting tab is collapsed (like runway's collapsed full-JD region).
+    full-posting tab is collapsed (like jobright's collapsed full-JD region).
   * simplify's structured "Degree" chip is the only place a Master's/PhD gate
     is machine-readable -- the prose says "currently pursuing a Master's or
     PhD ... is preferred", which no ``criteria.DEGREE_NEGATIVE`` pattern

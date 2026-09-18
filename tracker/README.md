@@ -26,7 +26,7 @@ Receiver occupies 5000 by default on many Macs.)
 
 ## Daily job scan
 
-`jobscan/` scrapes jobright.ai + runway.io (and SWElist digest links) and
+`jobscan/` scrapes jobright.ai (and SWElist digest links) and
 surfaces ~15 ranked picks at http://localhost:8080/picks.
 
 One-time setup:
@@ -39,11 +39,11 @@ First-time login:
     python3 scripts/chrome_login.py
 
 This opens a Chromium window on a dedicated profile (`~/.jobtracker/chrome-profile`).
-Sign into **jobright.ai** and **app.joinrunway.io**, then close the window. The
+Sign into **jobright.ai**, then close the window. The
 session persists across runs. `scripts/scan_jobs.py` runs headless and closes in
 seconds — it is NOT where you log in.
 
-Fixtures: `tests/fixtures/{jobright,runway,swelist}/*.html` are committed HTML
+Fixtures: `tests/fixtures/{jobright,jobright,swelist}/*.html` are committed HTML
 captures used by the adapter tests; recapture with `scripts/capture_fixture.py`
 if a site's markup drifts.
 

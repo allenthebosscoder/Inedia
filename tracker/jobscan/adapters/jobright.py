@@ -220,7 +220,7 @@ def parse_detail(page, card: JobCard) -> JobPosting:
         # We may know the real ATS url even though its content was
         # unreadable (bot-wall) -- keep it instead of reverting the pick's
         # link to the jobright.ai permalink (Allen: links must point to the
-        # direct posting, never runway/simplify/jobright).
+        # direct posting, never jobright/simplify/jobright).
         url = src[1] if (src and src[1]) else card.url
     else:
         raise ParseError(f"no description container at {card.url or feed_url()}")

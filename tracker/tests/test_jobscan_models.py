@@ -58,7 +58,7 @@ def test_dedup_key_strips_trailing_req_id_parens():
 
 def test_external_id_from_url_strips_query_and_slash():
     assert external_id_from_url("https://jobright.ai/jobs/abc123?ref=x") == "abc123"
-    assert external_id_from_url("https://runway.io/p/xyz/") == "xyz"
+    assert external_id_from_url("https://jobright.ai/p/xyz/") == "xyz"
 
 
 def test_jobposting_is_a_jobcard():

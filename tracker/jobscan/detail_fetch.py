@@ -218,7 +218,7 @@ def posted_at_from_ats_text(text: str) -> str:
 
 def ats_url_in_text(text: str) -> str | None:
     """The first recognized-ATS posting URL embedded in an HTML page or
-    text blob (jobright / runway render the real Apply link in the DOM).
+    text blob (jobright / jobright render the real Apply link in the DOM).
     Prefers an explicit applyUrl/originalUrl field over a loose scan."""
     text = text or ""
     for fm in re.finditer(r'"(?:applyUrl|originalUrl|apply_url|externalUrl|jobUrl|sourceUrl)"\s*:\s*"([^"]+)"', text):

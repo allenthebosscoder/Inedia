@@ -55,8 +55,8 @@ def test_terminal_dedup_disposition_matches_across_sources(tmp_path):
     # applied on jobright
     seen.record(c, key="jobright:1", source="jobright", url="u",
                 disposition="applied", dedup_key="acme|swe intern")
-    # the runway twin, same dedup_key, not yet seen under its own job_key
-    assert seen.is_seen(c, "runway:acme-swe-intern") is False
+    # the jobright twin, same dedup_key, not yet seen under its own job_key
+    assert seen.is_seen(c, "jobright:acme-swe-intern") is False
     assert seen.terminal_dedup_disposition(c, "acme|swe intern") == "applied"
     assert seen.terminal_dedup_disposition(c, "other|role") is None
 

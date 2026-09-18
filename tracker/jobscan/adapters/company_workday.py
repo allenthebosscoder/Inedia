@@ -1,6 +1,6 @@
 """Direct per-company Workday scrape.
 
-jobright / runway / jobnotifier / swelist only surface what the
+jobright / jobright / jobnotifier / swelist only surface what the
 aggregators happen to carry -- Marvell has ~19 intern reqs on its Workday,
 the aggregators showed 5. Workday's search API (``POST
 /wday/cxs/{tenant}/{site}/jobs``) is unauthenticated and returns the full

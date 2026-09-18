@@ -219,23 +219,23 @@ def _detail_for(card, desc="Summer 2027 internship for ECE students. " * 5):
 def test_run_groups_cross_source_twins_into_one_candidate_with_locations(tmp_path):
     db_path = str(tmp_path / "t.db"); init_db(db_path)
     jr = _card_src("jobright", "jr1", loc="Austin, TX")
-    rw = _card_src("runway", "rw1", loc="Denver, CO")
+    rw = _card_src("jobright", "rw1", loc="Denver, CO")
     feeds = [
         FakeFeedSrc([jr], {"jr1": _detail_for(jr)}, "jobright"),
-        FakeFeedSrc([rw], {"rw1": _detail_for(rw)}, "runway"),
+        FakeFeedSrc([rw], {"rw1": _detail_for(rw)}, "jobright"),
     ]
     artifact = runmod.run(db_path, feeds, None, [], FakePage(),
                           str(tmp_path / "daily_run"), today=TODAY)
     assert len(artifact["candidates"]) == 1
     c = artifact["candidates"][0]
     locs = {(l["location"], l["source"]) for l in c["locations"]}
-    assert locs == {("Austin, TX", "jobright"), ("Denver, CO", "runway")}
+    assert locs == {("Austin, TX", "jobright"), ("Denver, CO", "jobright")}
 
 
 def test_run_skips_card_whose_twin_was_applied_on_another_source(tmp_path):
     db_path = str(tmp_path / "t.db"); init_db(db_path)
     conn = get_db(db_path)
-    seen.record(conn, key="runway:already", source="runway", url="u",
+    seen.record(conn, key="jobright:already", source="jobright", url="u",
                 disposition="applied", dedup_key=dedup_key("Acme", "Firmware Engineer Intern"))
     conn.close()
 
@@ -306,18 +306,18 @@ def test_run_gives_extract_detail_a_separate_page_from_walk_feed(tmp_path):
 
 
 def test_run_lets_an_adapter_opt_out_of_the_separate_detail_page(tmp_path):
-    # runway's extract_detail clicks a row IN the feed page (no per-job URL
+    # jobright's extract_detail clicks a row IN the feed page (no per-job URL
     # to goto), so it must keep sharing the feed page rather than getting
     # the separate detail_page.
     db_path = str(tmp_path / "t.db"); init_db(db_path)
     feed_page = TrackingPage()
     detail_page = TrackingPage()
-    good = _card_src("runway", "r1")
+    good = _card_src("jobright", "r1")
 
     class ClickThroughFeed:
-        source = "runway"
+        source = "jobright"
         uses_separate_detail_page = False
-        def feed_url(self): return "https://app.joinrunway.io/explore"
+        def feed_url(self): return "https://jobright.ai/explore"
         def walk_feed(self, page, is_seen=lambda k: False):
             yield good
         def extract_detail(self, page, card):

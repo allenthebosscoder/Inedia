@@ -11,14 +11,14 @@ When Allen says "scan jobs":
 
 2. **Run the scraper.** `python3 scripts/scan_jobs.py`. If it prints
    "NOT LOGGED IN", tell Allen to log into that site in the open Chrome
-   window and rerun. Sources: jobright, runway, jobnotifier, swelist, and
+   window and rerun. Sources: jobright, jobright, jobnotifier, swelist, and
    `company-wd` (direct per-company Workday scrape — `jobscan/adapters/
    company_workday.py` `TARGETS`; add a hardware/semiconductor company
    there when the aggregators keep missing its reqs, e.g. Marvell/Micron).
 
 3. **Rank + post.** `python3 scripts/rank_picks.py --verify` does it:
    reads the newest `daily_run/*.json`, `--verify` re-fetches each
-   candidate's real ATS (direct API, or renders a jobright/runway page to
+   candidate's real ATS (direct API, or renders a jobright/jobright page to
    read the Apply link) and re-runs `hardfilter`/`resolve_term`, then
    `jobscan.rank.rank()` drops off-domain / defense-or-clearance role
    titles / military-transition / already-applied / user-deleted /
@@ -37,9 +37,9 @@ When Allen says "scan jobs":
      days old. Keeps `/picks` a short, contiguous, current list (told
      2026-09-09 — see `job_tracker_picks_freshness` memory).
    - **Direct links:** picks must link to the real ATS posting, not
-     simplify.jobs / jobright.ai / app.joinrunway.io. Resolve as a
+     simplify.jobs / jobright.ai / jobright.ai. Resolve as a
      post-pass (simplify → `resolve_source_url`; jobright → render +
-     `ats_url_in_text`; runway → "Apply to Job" popup URL).
+     `ats_url_in_text`; jobright → "Apply to Job" popup URL).
    - For each SWElist digest processed, insert a `seen_jobs` row
      with `job_key = "swelist-digest:<message-id>"`, `disposition = 'dropped'`,
      `drop_reason = 'email-processed'`.

@@ -7,7 +7,7 @@ Runs headless (never steals focus) against the bundled-Chromium profile at
 ~/.jobtracker/chrome-profile; pass --show for a visible window when
 debugging. First-time login is a separate step:
 `python3 scripts/chrome_login.py` (opens a window; sign into jobright.ai and
-app.joinrunway.io, close it). If the session has died this prints
+jobright.ai, close it). If the session has died this prints
 "NOT LOGGED IN" and exits 2.
 """
 from __future__ import annotations
@@ -22,7 +22,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from jobscan.adapters.company_workday import CompanyWorkdayAdapter
 from jobscan.adapters.jobnotifier import JobnotifierAdapter
 from jobscan.adapters.jobright import JobrightAdapter, LoginRequired as JobrightLogin
-from jobscan.adapters.runway import RunwayAdapter, LoginRequired as RunwayLogin
 from jobscan.adapters.swelist import SwelistAdapter
 from jobscan.profile import launch
 from jobscan.run import run
@@ -78,7 +77,7 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--show", action="store_true",
                     help="show the browser window (default: headless)")
     ap.add_argument("--no-swelist", action="store_true")
-    ap.add_argument("--only", choices=["jobright", "runway", "swelist", "jobnotifier", "company-wd"],
+    ap.add_argument("--only", choices=["jobright", "swelist", "jobnotifier", "company-wd"],
                     help="scan just this one source")
     ap.add_argument("--quiet", action="store_true", help="suppress per-job progress")
     return ap
@@ -89,7 +88,7 @@ def main(argv=None):
 
     links = [] if args.no_swelist else \
         load_swelist_links(os.path.join(args.out, "swelist_links.json"))
-    feed_map = {"jobright": JobrightAdapter(), "runway": RunwayAdapter(),
+    feed_map = {"jobright": JobrightAdapter(),
                 "jobnotifier": JobnotifierAdapter(), "company-wd": CompanyWorkdayAdapter()}
     feeds, swelist, links = _select_sources(args.only, feed_map, links)
     if links:
@@ -103,7 +102,7 @@ def main(argv=None):
             detail_page = context.new_page()
             artifact = run(args.db, feeds, swelist, links, page, args.out,
                            progress=progress, detail_page=detail_page)
-    except (JobrightLogin, RunwayLogin) as e:
+    except JobrightLogin as e:
         print(f"NOT LOGGED IN: {e}. Run `python3 scripts/chrome_login.py`, "
               f"sign into that site, then run again.")
         return 2

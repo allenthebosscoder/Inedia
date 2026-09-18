@@ -5,7 +5,7 @@
 
 ## Problem
 
-Allen finds roles via two aggregators, jobright.ai and runway.io, that each
+Allen finds roles via two aggregators, jobright.ai and jobright.ai, that each
 show 100+ personalized postings per day, plus the daily SWElist digest email
 (from `noreply@swelist.com`). Their built-in filters for visa sponsorship
 and internship term (Summer vs Fall/Spring) are unreliable, so he currently
@@ -58,7 +58,7 @@ jobscan/
   adapters/
     base.py                   JobCard, JobPosting dataclasses; Adapter protocol
     jobright.py               _parse_cards(page), scroll loop, extract_detail(page)
-    runway.py                 same shape
+    jobright.py                 same shape
     swelist.py                resolve_and_extract(page, url) -> JobPosting
                                 (follows simplify.jobs redirect; no walk_feed)
   prefilter.py                pure fn: JobCard | JobPosting -> None | (reason: str)
@@ -86,7 +86,7 @@ static/picks.js, static/picks.css
    If no unprocessed digest exists, the file is written empty / omitted.
 1. Claude runs `python scripts/scan_jobs.py` (headful Chrome, dedicated
    profile). The script picks up `daily_run/swelist_links.json` if present.
-2. **Aggregator adapters (jobright, runway):** `walk_feed(page)` yields
+2. **Aggregator adapters (jobright, jobright):** `walk_feed(page)` yields
    `JobCard`s newest-first.
    - Skip any `job_key` already in `seen_jobs` (bump `last_seen`).
    - `prefilter(card)` — on reject, insert `seen_jobs(disposition='dropped',
@@ -133,7 +133,7 @@ static/picks.js, static/picks.css
 ```python
 @dataclass
 class JobCard:
-    source: str          # 'jobright' | 'runway' | 'swelist'
+    source: str          # 'jobright' | 'jobright' | 'swelist'
     external_id: str      # parsed from posting URL (resolved URL for swelist)
     url: str
     company: str
@@ -148,7 +148,7 @@ class JobPosting(JobCard):
     employment_type_hint: str # e.g. 'Internship', 'Full-time', ''
     requirements_text: str    # requirements/qualifications section if separable, else ''
 
-class FeedAdapter(Protocol):        # jobright, runway
+class FeedAdapter(Protocol):        # jobright, jobright
     source: str
     def feed_url(self) -> str: ...
     def walk_feed(self, page) -> Iterator[JobCard]: ...
@@ -380,7 +380,7 @@ any shared helpers (prior bug `7ed938f`).
 
 **Playwright + Google Chrome (`channel="chrome"`)** —
 `tests/test_adapters.py`:
-- Committed fixtures `tests/fixtures/{jobright,runway}/feed.html` and
+- Committed fixtures `tests/fixtures/{jobright,jobright}/feed.html` and
   `detail_{clean,sponsorship,fall_term,senior,phd}.html`; for SWElist,
   `tests/fixtures/swelist/digest_email.html` and a
   `simplify_redirect.html` + resolved `posting.html`.
@@ -413,7 +413,7 @@ suspected selector drift.
 
 - Scheduling / cron (explicitly manual).
 - Resume tailoring — the existing chat workflow picks up after **Applied**.
-- Sources beyond jobright.ai, runway.io, and the SWElist digest (the
+- Sources beyond jobright.ai, jobright.ai, and the SWElist digest (the
   Feed/Link adapter split leaves room for more).
 - The script reading Gmail itself — link extraction stays with Claude.
 - Editing a pick's reasoning/rank from the page (re-run instead).

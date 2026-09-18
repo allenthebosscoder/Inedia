@@ -141,7 +141,7 @@ def test_regexes_are_sane():
 
 
 def test_relevant_matches_hardware_and_systems_titles():
-    # real runway/swelist titles that fell through as "off-domain" (2026-09-09)
+    # real jobright/swelist titles that fell through as "off-domain" (2026-09-09)
     for t in ["Intern, Hardware Design Engineering",
               "Electrical System Integration Engineer - New Grad",
               "Hardware Design Engineer Intern",
