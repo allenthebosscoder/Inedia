@@ -1,0 +1,280 @@
+:root {
+    --bg: #f5f5f8;
+    --surface: #ffffff;
+    --border: #e1e2e8;
+    --border-strong: #c9cbd4;
+    --text: #1c1d24;
+    --text-muted: #6b6e78;
+    --accent: #4451e0;
+    --accent-soft: #eceeff;
+    --accent-contrast: #ffffff;
+    --radius: 8px;
+    --shadow-sm: 0 1px 2px rgba(20, 20, 30, 0.04);
+    --shadow-md: 0 2px 8px rgba(20, 20, 30, 0.08);
+
+    --status-applied-bg: #ffffff;
+    --status-applied-text: var(--text-muted);
+    --status-interviewing-bg: #eaf0ff;
+    --status-interviewing-text: #2b4fd6;
+    --status-accepted-bg: #e7f7ee;
+    --status-accepted-text: #1c8a4d;
+    --status-rejected-bg: #fdeced;
+    --status-rejected-text: #c3323f;
+    --status-incomplete-bg: #fff6e2;
+    --status-incomplete-text: #9c6a05;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, "Segoe UI", Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 2rem 2.5rem 4rem;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 1rem;
+}
+
+h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.6rem;
+    color: var(--text);
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+/* ---- top-of-page tab nav, shared by all 3 pages ---- */
+.site-nav {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+}
+
+.site-nav a {
+    padding: 0.6rem 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.site-nav a:hover { color: var(--text); text-decoration: none; }
+
+.site-nav a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ---- forms & inputs ---- */
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    font: inherit;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+}
+
+input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+button {
+    font: inherit;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+button:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+button[type="submit"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 600;
+}
+
+button[type="submit"]:hover { background: #3540c9; }
+
+#quick-add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+details {
+    margin-bottom: 1rem;
+}
+
+details summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ---- table ---- */
+.table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+th, td {
+    border-bottom: 1px solid var(--border);
+    padding: 0.55rem 0.8rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    cursor: pointer;
+    background: #fafafc;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    user-select: none;
+    white-space: nowrap;
+}
+
+th:hover { color: var(--text); }
+
+tbody tr:hover { background: #fbfbfd; }
+
+td.notes {
+    max-width: 320px;
+}
+
+th[data-sort="id"], td:first-child {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    width: 1%;
+    white-space: nowrap;
+}
+
+select.status-select {
+    border: none;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.status-Applied { background-color: var(--status-applied-bg); color: var(--status-applied-text); }
+.status-Interviewing { background-color: var(--status-interviewing-bg); color: var(--status-interviewing-text); }
+.status-Accepted { background-color: var(--status-accepted-bg); color: var(--status-accepted-text); }
+.status-Rejected { background-color: var(--status-rejected-bg); color: var(--status-rejected-text); }
+.status-Incomplete { background-color: var(--status-incomplete-bg); color: var(--status-incomplete-text); }
+
+.toggle-pill {
+    border: none;
+    border-radius: 12px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.toggle-yes { background-color: var(--status-accepted-bg); color: var(--status-accepted-text); }
+.toggle-no { background-color: var(--status-rejected-bg); color: var(--status-rejected-text); }
+
+.toggle-dash {
+    color: #b5b7c0;
+    text-align: center;
+}
+
+/* ---- applying/rejected tabs (within the tracker page) ---- */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-button {
+    border: none;
+    background: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    border-radius: 0;
+}
+
+.tab-button:hover { background: none; border-color: var(--border-strong); }
+
+.tab-button.active {
+    color: var(--accent);
+    font-weight: 600;
+    border-bottom-color: var(--accent);
+}
+
+.filters {
+    margin: 0.75rem 0;
+    color: var(--text-muted);
+}
+
+.stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-label {
+    font-weight: 600;
+    margin-right: 0.35rem;
+    color: var(--text-muted);
+}

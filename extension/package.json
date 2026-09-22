@@ -1,0 +1,24 @@
+{
+  "name": "job-autofill-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.e2e.json",
+    "e2e": "npm run build && playwright test",
+    "e2e:headed": "npm run build && playwright test --headed",
+    "e2e:ats": "npm run build && node e2e/launch-ats.mjs",
+    "e2e:ats:manual": "npm run build && node e2e/launch-ats-manual.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/chrome": "^0.2.5",
+    "@types/node": "^26.1.2",
+    "esbuild": "^0.28.1",
+    "jsdom": "^29.1.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Application Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Job Application Tracker</h1>
+    <nav class="site-nav">
+        <a href="/" class="active">Tracker</a>
+        <a href="/picks">Daily Picks</a>
+        <a href="/reminders">Reminders</a>
+    </nav>
+
+    <form id="quick-add-form">
+        <input type="date" name="date_applied" required>
+        <input type="text" name="company" placeholder="Company" required>
+        <input type="text" name="role" placeholder="Role" required>
+        <select name="type" required>
+            <option value="Entry">Entry</option>
+            <option value="Intern">Intern</option>
+            <option value="Other">Other</option>
+        </select>
+        <select name="status" required>
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Incomplete">Incomplete</option>
+        </select>
+        <button type="submit">Add</button>
+    </form>
+
+    <details>
+        <summary>Paste rows</summary>
+        <textarea id="paste-textarea" rows="6" cols="80"
+            placeholder="Paste tab-separated rows: date&#9;company&#9;role&#9;type&#9;status&#9;referred&#9;outreach_sent&#9;reply_received&#9;notes"></textarea>
+        <button id="paste-submit" type="button">Import pasted rows</button>
+        <span id="paste-result"></span>
+    </details>
+
+    <div class="tabs">
+        <button type="button" class="tab-button active" data-tab="applying">Applying</button>
+        <button type="button" class="tab-button" data-tab="rejected">Rejected</button>
+    </div>
+
+    <div class="filters">
+        <label>Company:
+            <input type="text" id="filter-company" placeholder="Search company">
+        </label>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-box">
+            <span class="stat-label">Applied:</span>
+            <span id="stat-applied">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Rejected:</span>
+            <span id="stat-rejected">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Jobs applied to this week:</span>
+            <span id="stat-this-week">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Jobs applied to today:</span>
+            <span id="stat-today">0</span>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+    <table id="applications-table">
+        <thead>
+            <tr>
+                <th data-sort="id">#</th>
+                <th data-sort="date_applied">Date Applied</th>
+                <th data-sort="company">Company</th>
+                <th data-sort="role">Role</th>
+                <th data-sort="type">Type</th>
+                <th data-sort="status">Status</th>
+                <th data-sort="outreach_sent">Outreach Sent</th>
+                <th data-sort="reply_received">Reply Received</th>
+                <th data-sort="referred">Referred</th>
+                <th>Notes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="applications-body"></tbody>
+    </table>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

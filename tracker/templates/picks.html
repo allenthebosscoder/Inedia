@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Picks — Job Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='picks.css') }}">
+</head>
+<body>
+    <h1>Daily Picks</h1>
+    <nav class="site-nav">
+        <a href="/">Tracker</a>
+        <a href="/picks" class="active">Daily Picks</a>
+        <a href="/reminders">Reminders</a>
+    </nav>
+    <section id="priority"><h2>Priority</h2><div class="pick-list"></div></section>
+    <section id="today"><h2>Today's picks</h2><div class="pick-list"></div>
+        <details class="more"><summary>More candidates</summary><div class="pick-list"></div></details>
+    </section>
+    <section id="carried"><h2>Carried over</h2><div class="pick-list"></div></section>
+    <section id="applied"><h2>Applied today</h2><div class="pick-list"></div></section>
+    <script src="{{ url_for('static', filename='picks.js') }}"></script>
+</body>
+</html>

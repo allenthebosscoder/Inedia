@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root { color-scheme: light; --ink: #172033; --muted: #667085; --line: #d9deea; --brand: #4f46e5; --soft: #f6f7ff; }
+      * { box-sizing: border-box; }
+      body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink); background: #f5f7fb; max-width: 820px; margin: 0 auto; padding: 28px 20px 100px; }
+      .page-header { margin-bottom: 22px; }
+      .page-header .eyebrow { color: var(--brand); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+      .page-header p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+      form { display: grid; gap: 16px; }
+      fieldset { min-width: 0; margin: 0; padding: 40px 20px 20px; border: 0; border-radius: 14px; background: #fff; box-shadow: 0 4px 16px #1e293b08; }
+      legend { position: relative; top: 20px; padding: 0; background: transparent; font-size: 16px; font-weight: 750; }
+      label { display: block; margin-top: 12px; color: #344054; font-size: 13px; font-weight: 600; }
+      input, select, textarea { box-sizing: border-box; width: 100%; max-width: 100%; min-height: 38px; margin-top: 6px; padding: 8px 10px; color: var(--ink); border: 1px solid #cbd2e1; border-radius: 8px; background: #fff; font: inherit; }
+      textarea { min-height: 76px; resize: vertical; }
+      input:focus, select:focus, textarea:focus { outline: 3px solid #c7d2fe; border-color: var(--brand); }
+      button { min-height: 36px; margin-top: 12px; padding: 8px 13px; border: 1px solid #cbd2e1; border-radius: 8px; background: #fff; color: #344054; font: inherit; font-weight: 650; cursor: pointer; }
+      button:hover { border-color: var(--brand); color: var(--brand); background: var(--soft); }
+      button[type="submit"] { border-color: var(--brand); background: var(--brand); color: #fff; padding-inline: 22px; }
+      button[type="submit"]:hover { background: #4338ca; color: #fff; }
+      .field-help, #profile-library-status, #profile-transfer-status, #resume-file-status, #save-status { color: var(--muted) !important; font-size: 12px; line-height: 1.5; }
+      input[type="checkbox"], input[type="radio"] { width: auto; }
+      .choice-group { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 12px; }
+      .choice-group label { display: inline-flex; align-items: center; gap: 5px; margin-top: 0; }
+      #profile-form > fieldset:nth-of-type(4) > label, #profile-form > fieldset:nth-of-type(5) > label,
+      #profile-form > fieldset:nth-of-type(6) > label, #profile-form > fieldset:nth-of-type(7) > label { display: grid; grid-template-columns: minmax(0, 1fr) minmax(180px, 1fr); align-items: center; gap: 14px; }
+      #profile-form > fieldset:nth-of-type(4) > label input, #profile-form > fieldset:nth-of-type(4) > label select,
+      #profile-form > fieldset:nth-of-type(5) > label select, #profile-form > fieldset:nth-of-type(6) > label input,
+      #profile-form > fieldset:nth-of-type(6) > label select, #profile-form > fieldset:nth-of-type(7) > label input,
+      #profile-form > fieldset:nth-of-type(7) > label select { margin-top: 0; }
+      [data-work-entry], [data-education-entry], [data-override-row] {
+        border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-top: 10px; background: #fafbff;
+      }
+      #profile-form > button[type="submit"] { position: fixed; right: max(20px, calc((100vw - 820px) / 2)); bottom: 20px; box-shadow: 0 8px 24px #312e8155; }
+      @media (max-width: 620px) { body { padding: 20px 12px 90px; } #profile-form > fieldset:nth-of-type(4) > label, #profile-form > fieldset:nth-of-type(5) > label, #profile-form > fieldset:nth-of-type(6) > label, #profile-form > fieldset:nth-of-type(7) > label { display: block; } #profile-form > fieldset:nth-of-type(4) > label input, #profile-form > fieldset:nth-of-type(4) > label select, #profile-form > fieldset:nth-of-type(5) > label select, #profile-form > fieldset:nth-of-type(6) > label input, #profile-form > fieldset:nth-of-type(6) > label select, #profile-form > fieldset:nth-of-type(7) > label input, #profile-form > fieldset:nth-of-type(7) > label select { margin-top: 6px; } }
+    </style>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="eyebrow">Jorge Washingmachine</div>
+      <p>Keep your answers ready for the next application.</p>
+    </header>
+    <form id="profile-form">
+      <fieldset>
+        <legend>Saved Profiles</legend>
+        <label>Editing profile</label><div id="profile-selector" class="choice-group"></div>
+        <label>New profile name <input id="new-profile-name" placeholder="e.g. Program Management" /></label>
+        <button type="button" id="create-profile">Create as copy</button>
+        <button type="button" id="rename-profile">Rename current</button>
+        <button type="button" id="delete-profile">Delete current</button>
+        <div id="profile-library-status" style="font-size: 12px; color: #666;"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Profile Transfer</legend>
+        <button type="button" id="export-profile">Export profile</button>
+        <label>Import profile JSON <input id="import-profile" type="file" accept="application/json,.json" /></label>
+        <div id="profile-transfer-status" style="font-size: 12px; color: #666;"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Resume</legend>
+        <label>Resume file <input id="resume-file" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" /></label>
+        <button type="button" id="preview-resume" disabled>Preview</button>
+        <div id="resume-file-status" style="font-size: 12px; color: #666;"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Personal</legend>
+        <label>First name <input name="personal.firstName" /></label>
+        <label>Middle name (optional) <input name="personal.middleName" /></label>
+        <label>Last name <input name="personal.lastName" /></label>
+        <label>Email <input name="personal.email" /></label>
+        <label>Phone <input name="personal.phone" /></label>
+        <label>Phone Type
+          <select name="personal.phoneType">
+            <option value="">--</option>
+            <option value="mobile">Mobile</option>
+            <option value="home">Home</option>
+            <option value="work">Work</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Phone Country Code <input name="personal.phoneCountryCode" /></label>
+        <label>Address line 1 <input name="personal.address" /></label>
+        <label>Address line 2 (optional) <input name="personal.addressLine2" /></label>
+        <label>City <input name="personal.city" /></label>
+        <label>County <input name="personal.county" /></label>
+        <label>Country <input name="personal.country" /></label>
+        <label>State
+          <select name="personal.state">
+            <option value="">--</option>
+          </select>
+        </label>
+        <label>Zip <input name="personal.zip" /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Work Authorization</legend>
+        <label>Authorized to work?
+          <select name="workAuthorization.authorizedToWork">
+            <option value="">--</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Requires sponsorship?
+          <select name="workAuthorization.requiresSponsorship">
+            <option value="">--</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Plan to work under Optional Practical Training (OPT)?
+          <select name="workAuthorization.plansToUseOPT">
+            <option value="">--</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>U.S. person for export-control purposes?
+          <select name="workAuthorization.usPerson">
+            <option value="">--</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <p class="field-help">This can include U.S. citizens, permanent residents, refugees, and asylees. Leave blank if unsure.</p>
+        <label>Are you currently a citizen, national, or resident of Iran, Cuba, North Korea, Syria, Crimea, or the Donetsk People's Republic (DNR) or Luhansk People's Republic (LNR) regions of Ukraine?
+          <select name="workAuthorization.restrictedCountryStatus">
+            <option value="">--</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <p class="field-help">Used only when an application asks about this same country/region list for export-control compliance. This is not inferred from U.S. citizenship or your address.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Job Preferences</legend>
+        <label>Available start date <input name="jobPreferences.availableStartDate" type="date" /></label>
+        <label>At least 18 years old?
+          <select name="jobPreferences.atLeast18"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Desired pay &mdash; minimum <input name="jobPreferences.minimumSalary" inputmode="numeric" placeholder="e.g. 25 (hourly) or 85000 (annual)" /></label>
+        <label>Desired pay &mdash; maximum <input name="jobPreferences.compensationMax" inputmode="numeric" placeholder="e.g. 35 or 100000 (optional)" /></label>
+        <p class="field-help">Enter numbers only. Under ~2000 is read as an hourly rate, otherwise annual. A "minimum" or "desired salary" question gets the minimum; a "salary/pay range" question gets both.</p>
+        <label>U.S. citizen?
+          <select name="jobPreferences.usCitizen"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Have a security clearance?
+          <select name="jobPreferences.securityClearance"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Willing to relocate?
+          <select name="jobPreferences.willingToRelocate"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Willing and able to work on-site when a role requires it?
+          <select name="jobPreferences.willingToWorkOnsite"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Able to commit to a standard internship term (about 10&ndash;12 weeks)?
+          <select name="jobPreferences.canCommitInternshipTerm"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Voluntary Disclosures</legend>
+        <p class="field-help">These answers are optional. Leave any selection blank to review it manually on each application.</p>
+        <label>Hispanic or Latino?</label>
+        <div class="choice-group"><label><input type="radio" name="disclosures.hispanicOrLatino" value="Yes" /> Yes</label><label><input type="radio" name="disclosures.hispanicOrLatino" value="No" /> No</label><label><input type="radio" name="disclosures.hispanicOrLatino" value="I do not wish to answer" /> Prefer not to answer</label></div>
+        <label>Gender</label>
+        <div class="choice-group"><label><input type="radio" name="disclosures.gender" value="Female" /> Female</label><label><input type="radio" name="disclosures.gender" value="Male" /> Male</label><label><input type="radio" name="disclosures.gender" value="Non-binary" /> Non-binary</label><label><input type="radio" name="disclosures.gender" value="I do not wish to answer" /> Prefer not to answer</label></div>
+        <label>Race/Ethnicity</label>
+        <div class="choice-group"><label><input type="radio" name="disclosures.raceEthnicity" value="American Indian or Alaska Native" /> American Indian or Alaska Native</label><label><input type="radio" name="disclosures.raceEthnicity" value="Asian" /> Asian</label><label><input type="radio" name="disclosures.raceEthnicity" value="Black or African American" /> Black or African American</label><label><input type="radio" name="disclosures.raceEthnicity" value="Native Hawaiian or Other Pacific Islander" /> Native Hawaiian or Other Pacific Islander</label><label><input type="radio" name="disclosures.raceEthnicity" value="White" /> White</label><label><input type="radio" name="disclosures.raceEthnicity" value="Two or More Races" /> Two or More Races</label><label><input type="radio" name="disclosures.raceEthnicity" value="I do not wish to answer" /> Prefer not to answer</label></div>
+        <label>Veteran status</label>
+        <div class="choice-group"><label><input type="radio" name="disclosures.veteranStatus" value="I identify as one or more of the classifications of protected veterans listed above" /> Protected veteran</label><label><input type="radio" name="disclosures.veteranStatus" value="I identify as a veteran, just not a protected veteran" /> Veteran, not protected</label><label><input type="radio" name="disclosures.veteranStatus" value="I am not a veteran" /> Not a veteran</label><label><input type="radio" name="disclosures.veteranStatus" value="I do not wish to answer" /> Prefer not to answer</label></div>
+        <label>Disability status</label>
+        <div class="choice-group"><label><input type="radio" name="disclosures.disabilityStatus" value="Yes, I have a disability, or have had one in the past" /> Yes</label><label><input type="radio" name="disclosures.disabilityStatus" value="No, I do not have a disability and have not had one in the past" /> No</label><label><input type="radio" name="disclosures.disabilityStatus" value="I do not want to answer" /> Prefer not to answer</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Professional Details</legend>
+        <label>Do you have an active non-compete agreement?
+          <select name="professional.hasNonCompeteAgreement"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Have you ever been terminated or asked to resign by a previous employer?
+          <select name="professional.everTerminated"><option value="">--</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </label>
+        <label>Highest completed education
+          <select name="professional.highestEducation">
+            <option value="">--</option>
+            <option value="high_school">High School or equivalent</option>
+            <option value="some_college">Some College</option>
+            <option value="associates">Associate Degree</option>
+            <option value="bachelors">Bachelor's Degree</option>
+            <option value="masters">Master's Degree</option>
+            <option value="doctorate">Doctorate</option>
+          </select>
+        </label>
+        <label>Skills (comma-separated)
+          <textarea name="professional.skills" placeholder="e.g. C++, Python, PCB Design, Verilog"></textarea>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Links</legend>
+        <label>LinkedIn <input name="links.linkedin" /></label>
+        <label>Portfolio <input name="links.portfolio" /></label>
+        <label>GitHub <input name="links.github" /></label>
+      </fieldset>
+
+      <p style="font-size: 12px; color: #666;">Work history and education entries are autofilled on supported application sites, including repeatable Workday sections.</p>
+
+      <fieldset>
+        <legend>Work History</legend>
+        <div id="work-history-list"></div>
+        <button type="button" id="add-work-entry">+ Add job</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Education</legend>
+        <div id="education-list"></div>
+        <button type="button" id="add-education-entry">+ Add school</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Custom Q&amp;A Overrides</legend>
+        <div id="overrides-list"></div>
+        <button type="button" id="add-override">+ Add override</button>
+      </fieldset>
+
+      <button type="submit">Save</button>
+      <span id="save-status"></span>
+    </form>
+    <script src="options.js"></script>
+  </body>
+</html>

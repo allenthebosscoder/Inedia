@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Job Autofill",
+  "version": "0.1.0",
+  "description": "Fast, local autofill for job applications. No AI, no tracking.",
+  "action": {},
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "options_page": "dist/options.html",
+  "permissions": ["storage", "activeTab", "scripting", "webNavigation", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["dist/content-widget.js"],
+    "run_at": "document_idle"
+  }],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

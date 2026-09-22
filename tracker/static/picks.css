@@ -1,0 +1,59 @@
+section { margin-top: 1.75rem; }
+
+.pick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.pick-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1.1rem;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.pick-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+}
+
+.rank {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0; }
+
+.pill {
+    background: var(--accent-soft);
+    color: #3540c9;
+    border-radius: 12px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.pill-unknown { background: var(--status-incomplete-bg); color: var(--status-incomplete-text); }
+.pill-from { background: #eceef2; color: var(--text-muted); }
+
+.reasoning { margin: 0.5rem 0; color: var(--text-muted); }
+
+pre.jd {
+    white-space: pre-wrap;
+    font-family: inherit;
+    background: #fafafc;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem;
+}
+
+.actions { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; }
+.actions button.danger { color: var(--status-rejected-text); border-color: var(--status-rejected-text); }
+.actions button.danger:hover { background: var(--status-rejected-bg); }
