@@ -281,6 +281,6 @@ class SwelistAdapter:
             # We know the real ATS url (the click-redirect landed on it) even
             # though its content was unreadable (bot-wall, e.g. iCIMS) --
             # keep it instead of reverting the pick's link to the simplify
-            # permalink (Test: links must point to the direct posting).
+            # permalink -- links must point to the direct posting.
             posting = dataclasses.replace(posting, url=real)
         return posting

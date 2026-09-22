@@ -155,7 +155,7 @@ def test_delete_missing_pick_is_404(client):
 def test_delete_with_superseded_reason_does_not_poison_dedup_key(client):
     # rerank_picks.py cleans up a losing duplicate (same dedup_key as a pick
     # it's keeping under a DIFFERENT job_key) -- that's internal bookkeeping,
-    # not Test clicking Delete, so it must not make the dedup_key look
+    # not a real user clicking Delete, so it must not make the dedup_key look
     # permanently deleted and take the surviving duplicate down with it on
     # the next rerank (recurring bug hit 2026-09-16 through 2026-09-21:
     # Amazon/ADI/Apple, Lazard/Fable/Together AI/Stripe, Capgemini,

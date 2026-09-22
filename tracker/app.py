@@ -271,7 +271,7 @@ def create_app(db_path="tracker.db", seed=False):
                     "SELECT disposition FROM seen_jobs WHERE job_key = ?", (p["job_key"],)
                 ).fetchone()
                 if srow is not None and srow["disposition"] == "deleted":
-                    # Test deleted this job_key for good; a stale scan result
+                    # This job_key was deleted for good; a stale scan result
                     # (or a re-run before the scanner's own skip catches up)
                     # must not resurrect it on the page.
                     ignored += 1

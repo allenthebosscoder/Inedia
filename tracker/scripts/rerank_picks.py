@@ -4,7 +4,7 @@ Applied/Deleted row or a rule), renumber 1..N by the ranking order, and
 POST the result back. Also prunes picks older than 2 days (job_tracker_
 picks_freshness). Run this after ANY change to the page -- a delete, a
 link resolve, a fresh scan merge -- so the rank numbers stay contiguous
-and correct (told 2026-09-09: "update rankings after every new update").
+and correct.
 
     python3 scripts/rerank_picks.py [--api http://localhost:8080] [--dry-run]
 """
@@ -61,10 +61,9 @@ def main(argv=None) -> int:
         "salary_hint": p.get("salary", ""),
     } for p in fresh]
 
-    # No per-company application cap (Test, 2026-09-16: "ignore the 3 per
-    # company cap" -- some logged applications are resume-intake/talent-pool
-    # submissions, not distinct real roles, so counting them toward a cap
-    # was misleading).
+    # No per-company application cap -- some logged applications are
+    # resume-intake/talent-pool submissions, not distinct real roles, so
+    # counting them toward a cap was misleading.
     ranked, dropped = rank(cands, applied, deleted)
     ranked_keys = {f"{r['source']}:{r['external_id']}" for r in ranked}
     drop_rows = stale + [p for p in fresh if p["job_key"] not in ranked_keys]

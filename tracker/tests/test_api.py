@@ -253,11 +253,11 @@ def test_set_active_profile_primes_intern_grad_date_and_resume(tmp_path):
 
 
 def test_set_active_profile_grad_date_override_wins_over_role_type_default(tmp_path):
-    """Test has three real graduation dates, not two: May 2027 (early, with
-    a full-time offer), Dec 2027 (early-ish, internship-driven), or May 2028
-    (on track, his normal 4-year timeline). The Entry/Intern default table
-    only covers the first two, so a posting requiring "graduating 2028 or
-    beyond" (e.g. ID.me, 2026-09-05) needs an explicit override."""
+    """A real user can have three possible graduation dates, not two: an
+    early grad with a full-time offer, an early-ish internship-driven date,
+    or the normal on-track timeline. The Entry/Intern default table only
+    covers the first two, so a posting requiring "graduating 2028 or
+    beyond" (e.g. ID.me) needs an explicit override."""
     path = str(tmp_path / "active_profile.json")
     set_active_profile(
         "Intern", "resume.pdf", "data:application/pdf;base64,ZmFrZQ==",

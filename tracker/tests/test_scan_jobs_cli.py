@@ -43,11 +43,11 @@ def test_format_summary_mentions_each_source():
 
 
 def test_default_is_headless_so_a_scan_never_steals_focus():
-    # Test (2026-09-15): "is there a way to make the scan run without my
-    # laptop forcing to that screen everytime a new page is opened?" -- the
-    # docstring already claimed "Runs headless" but the actual CLI default
-    # was a *visible* browser (--headless was opt-in, defaulting False).
-    # Headless must be the default; --show is the opt-in for debugging.
+    # A scan shouldn't force focus to a browser window every time a new
+    # page opens -- the docstring already claimed "Runs headless" but the
+    # actual CLI default was a *visible* browser (--headless was opt-in,
+    # defaulting False). Headless must be the default; --show is the
+    # opt-in for debugging.
     args = scan_jobs._parser().parse_args([])
     assert args.show is False
 

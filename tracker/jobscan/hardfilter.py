@@ -139,7 +139,7 @@ _HOURS_NUM_RX = re.compile(
 
 
 def _part_time_dropped(text: str) -> bool:
-    """Test wants full-time roles. Drops "part-time internship" and any
+    """Full-time roles only. Drops "part-time internship" and any
     stated weekly-hours figure whose top end is under 32."""
     if _PART_TIME_ROLE_RX.search(text):
         return True
@@ -352,13 +352,17 @@ def _looks_like_title(line: str) -> bool:
     return bool(_TITLE_LIKE_RX.search(line)) and not _TITLE_SENTENCE_GUARD_RX.search(line)
 
 
-# Test's earliest possible graduation across all three of his real paths
-# (May 2027 early-grad / Dec 2027 / May 2028 on-track) is May 2027 -- see
-# job_tracker_resumes / job_tracker_visa_sponsorship. A "New Grad" posting
-# with an explicit degree-completion window entirely before that excludes
-# him no matter which path he takes (GM: "Degree completed between December
-# 2025 and August 2026, with availability to begin employment in 2026").
-_ALLEN_EARLIEST_GRAD = (2027, 5)
+# The earliest possible graduation date, as (year, month) -- personal, so it
+# lives in the gitignored search_preferences_private.py (see .example for the
+# template). A "New Grad" posting with an explicit degree-completion window
+# entirely before this excludes the user no matter which of their real
+# degree-completion paths they take (real example: "Degree completed between
+# December 2025 and August 2026, with availability to begin employment in
+# 2026" -- a full year earlier than a May 2027 earliest grad).
+try:
+    from search_preferences_private import EARLIEST_GRAD as _ALLEN_EARLIEST_GRAD
+except ImportError:
+    _ALLEN_EARLIEST_GRAD = (2027, 5)
 _GRAD_WINDOW_RX = re.compile(
     r"(?:degree\s+complet\w*|graduation)\s*(?:must\s+have\s+occurred\s+)?"
     r"between\s+" + _MONTH_RX + r"\s+(\d{4})\s+and\s+" + _MONTH_RX + r"\s+(\d{4})", re.I)
@@ -392,8 +396,7 @@ def _title_grad_year_dropped(role: str) -> bool:
 # A degree-tiered experience requirement ("Master's Level Degree and 0
 # years related work experience; Bachelor's Level Degree and related work
 # experience of 2 years", KLA) means a fresh Bachelor's grad with no prior
-# full-time experience -- Test's situation on every one of his three grad
-# paths -- doesn't qualify on either tier. Only fires on the specific
+# full-time experience doesn't qualify on either tier. Only fires on the specific
 # "degree AND <n> years [of] experience" construction, not a loose mention
 # of years elsewhere in the JD.
 _BACHELOR_EXPERIENCE_RX = re.compile(

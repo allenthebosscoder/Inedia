@@ -1,6 +1,6 @@
 """Dedicated, persistent browser profile for the scraper. Users log into
 job sources once in this profile; the session persists across runs.
-Never touches Test's everyday Chrome profile.
+Never touches the user's everyday Chrome profile.
 
 Uses Playwright's bundled Chromium rather than channel="chrome": the system
 Google Chrome fails to launch under Playwright on this setup ("Trying to

@@ -51,7 +51,7 @@ def _dedup_terminal_skip(item, conn, key, dropped) -> str | None:
 
 
 def _applied_externally_skip(item, conn, key, applied_keys, dropped) -> bool:
-    """If Test already applied to this (company, role) outside the pipeline
+    """If this (company, role) was already applied to outside the pipeline
     -- it's in the applications table but not seen_jobs -- record it as
     applied and skip it (and the detail fetch, when called at card level)."""
     dk = dedup_key(item.company, item.role)
@@ -216,7 +216,7 @@ def run(db_path, feed_adapters, swelist_adapter, swelist_links, page, out_dir,
             except JobrightLogin:
                 # A dead / logged-out session must abort the whole scan, not
                 # be swallowed as a per-adapter error -- scripts/scan_jobs.py
-                # catches this and tells Test to log in again.
+                # catches this and prompts a re-login.
                 raise
             except Exception as e:  # noqa: BLE001
                 errors.append({"url": adapter.feed_url(), "error": repr(e)})

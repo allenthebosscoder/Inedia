@@ -1,7 +1,7 @@
 """Turn a run artifact's `candidates` into the ranked list that goes on
 `/picks`. Codifies the curation rules that were re-derived by hand every
-run: drop what isn't Test's field / won't sponsor / he already actioned,
-then order hardware-and-embedded before general SWE, Summer 2027 before
+run: drop what isn't in-field / won't sponsor / already actioned, then
+order hardware-and-embedded before general SWE, Summer 2027 before
 everything, freshest first.
 
 `heuristic_score` already folds in recency (score.py penalizes stale
@@ -15,7 +15,7 @@ from jobscan.adapters.base import dedup_key
 
 _PAST_SUMMER_RX = re.compile(r"summer\s+(\d{4})", re.I)
 
-# Test's fields. A role title must match one of these to stay.
+# In-field titles. A role title must match one of these to stay.
 RELEVANT = re.compile(
     r"\b(fpga|firmware|embedded|verilog|vhdl|rtl|asic|soc|dsp|analog|photonic|"
     r"semiconductor|microcontroller|vlsi|dft|mems|pcb|electronics|hbm|dram)\b"
@@ -55,14 +55,13 @@ HARDWARE = re.compile(
     r"power electronics|power system|controls eng|physical design|ic design|design verification|"
     r"\brf\b", re.I)
 
-# NOT a sponsorship blocklist (that was removed 2026-09-08 -- sponsorship is
-# JD-text-only). This is the short list of pure-defense primes where
-# ITAR / US-person is legally mandated for essentially every role, not a
+# NOT a sponsorship blocklist (sponsorship is JD-text-only, checked
+# elsewhere). This is the short list of pure-defense primes where ITAR /
+# US-person is legally mandated for essentially every role, not a
 # discretionary HR policy -- their intern JDs often omit the clause, so
 # they flood /picks via jobright/jobnotifier otherwise. Add a company here
 # ONLY when it's an unambiguous defense prime; when in doubt, leave it out
-# and let hardfilter's JD-text clearance check handle it (told 2026-09-10:
-# "dont be hasty with adding things to that list").
+# and let hardfilter's JD-text clearance check handle it instead.
 DEFENSE_COMPANIES = (
     "l3harris", "l3 harris", "raytheon", "rtx", "lockheed", "lockheed martin",
     "northrop", "northrop grumman", "general dynamics", "gdms", "gd mission",
@@ -78,23 +77,15 @@ def _company_hit(company: str, names) -> bool:
 
 
 # Temporary company holds -- unlike DEFENSE_COMPANIES (a permanent block),
-# each entry here is a call Test made about his own situation with that
-# company, not a fixed rule about the company itself. `until` is a date
-# the hold expires on its own (no one needs to remember to remove it), or
-# None for an indefinite hold that stays until Test says otherwise.
-_TEMP_COMPANY_HOLDS = (
-    # applied to 2 ByteDance roles 2026-09-14, wants a break from more
-    # ByteDance/TikTok postings until December.
-    (("bytedance", "tiktok"), datetime.date(2026, 12, 1)),
-    # "skip all lunar outpost from now on, i think it auto rejects"
-    # (2026-09-16) -- no end date given.
-    (("lunar outpost",), None),
-    # "zipline also, im done for the year, remember?" (2026-09-20) -- their
-    # ATS caps total applications in a window and Test's used his for this
-    # cycle, so any new posting is a dead end regardless of fit. No end
-    # date given.
-    (("zipline",), None),
-)
+# each entry here is a personal call about the current situation with that
+# company, not a fixed rule about the company itself, so it lives in the
+# gitignored search_preferences_private.py (see .example for the template
+# and format: `until` is a date the hold expires on its own, or None for an
+# indefinite hold removed by hand later).
+try:
+    from search_preferences_private import TEMP_COMPANY_HOLDS as _TEMP_COMPANY_HOLDS
+except ImportError:
+    _TEMP_COMPANY_HOLDS = ()
 
 
 _MILITARY = re.compile(r"skillsbridge|skillbridge|military\s+transition|"
@@ -107,11 +98,11 @@ _DEFENSE_ROLE = re.compile(
     r"\bTS/?SCI\b|\bclearance\b|\bpolygraph\b|\bpoly\s+required\b|\bDoD\b|\bclassified\b|"
     r"\bsecret\s+clearance\b", re.I)
 
-# Test decided 2026-09-11: internships only, not co-ops. A co-op (esp. a
-# multi-semester one, e.g. Waystar's "3-Semester Application Engineer
-# Co-Op") is a bigger commitment than a summer internship -- it often means
-# time away from Duke and its own CPT/leave-of-absence review -- and he'd
-# rather not deal with that logistics case-by-case right now.
+# Internships only, not co-ops. A co-op (esp. a multi-semester one, e.g.
+# Waystar's "3-Semester Application Engineer Co-Op") is a bigger commitment
+# than a summer internship -- it often means time away from school and its
+# own CPT/leave-of-absence review, not worth the logistics case-by-case
+# right now.
 _COOP_RX = re.compile(r"\bco.?op\b", re.I)
 
 
@@ -159,8 +150,8 @@ def _drop_reason(c: dict, applied_keys: set, deleted_keys: set,
 
 
 def capped_companies(applications: list, threshold: int = 3) -> frozenset:
-    """Normalized company names Test has applied to `threshold`+ times --
-    several ATSs (Zipline, Shure) cap total applications in a window."""
+    """Normalized company names applied to `threshold`+ times -- several
+    ATSs (Zipline, Shure) cap total applications in a window."""
     from collections import Counter
     counts = Counter(dedup_key(co, "").split("|", 1)[0] for co, _ in applications)
     return frozenset(c for c, n in counts.items() if c and n >= threshold)

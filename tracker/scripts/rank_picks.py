@@ -3,8 +3,8 @@
     python3 scripts/rank_picks.py [--db tracker.db] [--out daily_run]
                                   [--api http://127.0.0.1:8080] [--dry-run]
 
-Reads the most recent daily_run/*.json, drops what isn't Test's field /
-won't sponsor / he already applied to or deleted (jobscan.rank), and
+Reads the most recent daily_run/*.json, drops what isn't in-field /
+won't sponsor / already applied to or deleted (jobscan.rank), and
 POSTs the survivors to /api/picks/bulk, ranked. --dry-run just prints.
 """
 from __future__ import annotations
@@ -154,10 +154,9 @@ def main(argv=None) -> int:
         candidates, vdropped = _verify(candidates)
         print(f"  verify: -{len(vdropped)} ({dict(Counter(d['reason'] for d in vdropped))})")
 
-    # No per-company application cap (Test, 2026-09-16: "ignore the 3 per
-    # company cap" -- some logged applications are resume-intake/talent-pool
-    # submissions, not distinct real roles, so counting them toward a cap
-    # was misleading).
+    # No per-company application cap -- some logged applications are
+    # resume-intake/talent-pool submissions, not distinct real roles, so
+    # counting them toward a cap was misleading.
     ranked, dropped = rank(candidates, applied, deleted)
     dropped += vdropped
     print(f"{art_path}: -> {len(ranked)} picks")

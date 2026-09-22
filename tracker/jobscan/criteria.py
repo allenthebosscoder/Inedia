@@ -41,7 +41,7 @@ SPONSORSHIP_NEGATIVE = [
     r"citizens?\s+only",
     r"\bitar\b",
     r"export[\s-]?control(?:led)?",
-    # phrasings Test surfaced 2026-09-08 (Capital One / CDM Smith / Skyward style)
+    # phrasings found in the wild (Capital One / CDM Smith / Skyward style)
     r"not\s+(?:currently\s+)?provid(?:e|ing)\b[^.]{0,25}sponsor",
     r"(?:authoriz\w*\s+to\s+work|work\s+in\s+the\s+u\.?s\.?)\b.{0,30}?"
     r"\bon\s+a\s+permanent\s+basis",

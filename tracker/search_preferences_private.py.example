@@ -1,0 +1,19 @@
+"""Copy to search_preferences_private.py and fill in your own preferences.
+The real file is gitignored -- these are personal job-search constraints
+(graduation timeline, per-company holds) that don't belong in shared code.
+"""
+import datetime
+
+# (year, month) of the earliest date you could plausibly start a full-time
+# role. A "New Grad" posting whose stated degree-completion window, or
+# title-level graduating class, ends before this is not a fit.
+EARLIEST_GRAD = (2027, 5)
+
+# Company holds you want the ranker to respect right now. Each entry is
+# ((names...), until) -- `names` are lowercase company-name fragments to
+# match, `until` is a `datetime.date` the hold expires on its own, or None
+# for an indefinite hold you'll remove by hand later.
+TEMP_COMPANY_HOLDS = (
+    # (("example corp",), datetime.date(2026, 12, 1)),
+    # (("another company",), None),
+)

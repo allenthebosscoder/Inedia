@@ -75,9 +75,8 @@ def test_defense_prime_companies_dropped():
 
 
 def test_temp_company_hold_drops_bytedance_and_tiktok_until_the_hold_date():
-    # Test applied to 2 ByteDance roles 2026-09-14 and asked for a break
-    # from more ByteDance/TikTok postings until December -- unlike
-    # DEFENSE_COMPANIES this is temporary/dated, not a permanent block.
+    # A dated hold: exclude ByteDance/TikTok postings until a set date --
+    # unlike DEFENSE_COMPANIES this is temporary/dated, not a permanent block.
     for co in ["ByteDance", "TikTok"]:
         cands = [_c(co, "Software Engineer Intern", term="Summer 2027", score=80)]
         ranked, dropped = rank(cands, applied_keys=set(), deleted_keys=set())
@@ -86,9 +85,9 @@ def test_temp_company_hold_drops_bytedance_and_tiktok_until_the_hold_date():
 
 
 def test_undated_company_hold_drops_lunar_outpost_indefinitely():
-    # Test (2026-09-16): "skip all lunar outpost from now on, i think it
-    # auto rejects" -- no end date given, unlike the ByteDance hold, so this
-    # entry has until=None and never expires on its own.
+    # An undated hold: a company suspected of auto-rejecting, no end date
+    # given, unlike the ByteDance hold, so this entry has until=None and
+    # never expires on its own.
     cands = [_c("Lunar Outpost", "Software Engineer Intern", term="Summer 2027", score=80)]
     ranked, dropped = rank(cands, applied_keys=set(), deleted_keys=set())
     assert ranked == []
@@ -96,10 +95,9 @@ def test_undated_company_hold_drops_lunar_outpost_indefinitely():
 
 
 def test_undated_company_hold_drops_zipline_indefinitely():
-    # Test (2026-09-20): "zipline also, im done for the year, remember?" --
-    # Zipline's ATS caps total applications in a window and Test's already
-    # used his for this cycle, so any new Zipline posting is a dead end
-    # regardless of role fit. No end date given.
+    # Zipline's ATS caps total applications in a window and that cap's
+    # already been used for this cycle, so any new Zipline posting is a
+    # dead end regardless of role fit. No end date given.
     cands = [_c("Zipline", "Test Equipment Design Engineer", term="Unknown", score=80)]
     ranked, dropped = rank(cands, applied_keys=set(), deleted_keys=set())
     assert ranked == []
@@ -199,10 +197,10 @@ def test_relevant_matches_hardware_and_systems_titles():
     assert OFF_DOMAIN.search("Sales Application Engineer")
 
 
-def test_drops_co_op_titles_allen_wants_internships_only():
-    # Test decided 2026-09-11: co-ops (often multi-semester, away-from-Duke
-    # commitments requiring their own CPT/leave-of-absence review) aren't
-    # worth it right now -- internships only.
+def test_drops_co_op_titles_internships_only():
+    # Co-ops (often multi-semester, away-from-school commitments requiring
+    # their own CPT/leave-of-absence review) aren't worth it right now --
+    # internships only.
     for role in ["Application Engineer Co-Op", "Software Engineer Co Op",
                  "Firmware Engineer CoOp Intern", "3-Semester Co-op Program"]:
         cands = [_c("Waystar", role, term="Unknown", score=50)]

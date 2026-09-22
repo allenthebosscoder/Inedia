@@ -36,7 +36,7 @@ def test_drops_no_sponsorship_form_field_and_indirect_phrasings():
         "Individuals who need sponsorship now or in the future are not eligible.",
         "Barclays will not offer or consider offering sponsorship for work visas.",
         "Candidates must not require work authorization sponsorship in the future.",
-        # phrasings Test surfaced 2026-09-08 that the JD-text filter still missed
+        # phrasings found in the wild that the JD-text filter still missed
         "We are not providing visa sponsorship for this role.",
         "We are not currently providing sponsorship for this position.",
         "Applicants must be authorized to work in the U.S. on a permanent basis.",
@@ -82,7 +82,7 @@ def test_masters_preferred_not_dropped():
 
 
 def test_drops_bachelors_tier_that_requires_prior_experience():
-    # KLA (2026-09-11): the Bachelor's tier needs 2 years Test won't have.
+    # KLA: the Bachelor's tier needs 2 years a fresh grad won't have.
     for d in ["Master's Level Degree and 0 years related work experience; "
               "Bachelor's Level Degree and related work experience of 2 years",
               "Bachelor's degree and 3 years of related work experience"]:
@@ -95,9 +95,9 @@ def test_drops_bachelors_tier_that_requires_prior_experience():
                                     "of combined industry experience." + " x" * 200)) is None
 
 
-def test_drops_grad_window_entirely_before_allens_earliest_grad():
-    # General Motors (2026-09-11): wants someone who already graduated --
-    # Test's earliest possible grad is May 2027, after this window ends.
+def test_drops_grad_window_entirely_before_earliest_grad():
+    # General Motors: wants someone who already graduated -- the earliest
+    # possible grad date configured is May 2027, after this window ends.
     for d in ["Degree completed between December 2025 and August 2026, "
               "with availability to begin employment in 2026.",
               "Graduation between December 2025 and August 2026, with "
@@ -106,16 +106,15 @@ def test_drops_grad_window_entirely_before_allens_earliest_grad():
                           ) == "grad-window", d
 
 
-def test_grad_window_overlapping_allens_earliest_grad_is_not_dropped():
+def test_grad_window_overlapping_earliest_grad_is_not_dropped():
     assert hardfilter(posting(desc="Degree completed between January 2027 and "
                                     "August 2027." + " x" * 200)) is None
 
 
-def test_drops_title_level_grad_class_year_before_allens_earliest_grad():
-    # NVIDIA (2026-09-20, Test: "nvidia college grad 2026 shouldn't be
-    # there"): the title alone names a graduating class a full year before
-    # Test's earliest possible grad (May 2027) -- the JD body never
-    # restates a "degree completed between X and Y" window for
+def test_drops_title_level_grad_class_year_before_earliest_grad():
+    # NVIDIA: the title alone names a graduating class a full year before
+    # the earliest possible grad date configured (May 2027) -- the JD body
+    # never restates a "degree completed between X and Y" window for
     # _GRAD_WINDOW_RX to catch, so the title marker needs its own check.
     for role in ["ASIC Design Engineer - New College Grad 2026",
                  "Software Engineer, Hardware Tools and Methodology - New College Grad 2026",
@@ -125,7 +124,7 @@ def test_drops_title_level_grad_class_year_before_allens_earliest_grad():
                           today=TODAY) == "grad-window", role
 
 
-def test_title_level_grad_class_year_at_or_after_allens_earliest_grad_is_not_dropped():
+def test_title_level_grad_class_year_at_or_after_earliest_grad_is_not_dropped():
     for role in ["New College Grad 2027 - ASIC Design Engineer",
                  "Software Engineer (Class of 2028)"]:
         assert hardfilter(posting(role=role, desc="Build great things. " * 20),
@@ -453,8 +452,8 @@ def test_drops_export_control_us_person_requirement():
     # U.S. export control laws and regulations. To comply with these
     # requirements, applicants must qualify as a U.S. Person." -- ITAR/EAR
     # export-control gate, same category as a security clearance: an
-    # unambiguous citizenship/status requirement Test (Singaporean) can't
-    # meet, not something that gets rescued by a nearby "not required".
+    # unambiguous citizenship/status requirement a non-US-person can't meet,
+    # not something that gets rescued by a nearby "not required".
     for d in [
         "This position may require access to information, technology, software, "
         "or hardware that is subject to U.S. export control laws and regulations. "
@@ -484,7 +483,7 @@ def test_resolve_term_falls_back_to_month_heuristic_when_no_year_in_text():
 
 
 def test_drops_part_time_internships():
-    # Test wants full-time roles. MAHLE: "Weekly Working Hours: 20-25".
+    # Full-time roles only. MAHLE: "Weekly Working Hours: 20-25".
     for desc in [
         "Weekly Working Hours: 20-25. Support the electronic controls team.",
         "This is a part-time internship, approximately 15 hours per week.",

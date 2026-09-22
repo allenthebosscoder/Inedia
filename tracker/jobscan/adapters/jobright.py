@@ -31,7 +31,7 @@ CONSECUTIVE_SEEN_STOP = 15
 # Every site-specific CSS selector the adapter uses. Prefix-match the stable
 # CSS-module name; the trailing hash is deploy-specific.
 SELECTORS: dict[str, str] = {
-    # A selector present ONLY on the logged-out page. Test's fixture is a
+    # A selector present ONLY on the logged-out page. The test fixture is a
     # logged-in capture and shows no login/auth markup, so this is left empty:
     # walk_feed then simply never raises LoginRequired and a run summary of
     # "0 cards" is the fallback signal that the session died.
@@ -219,8 +219,8 @@ def parse_detail(page, card: JobCard) -> JobPosting:
         description = own
         # We may know the real ATS url even though its content was
         # unreadable (bot-wall) -- keep it instead of reverting the pick's
-        # link to the jobright.ai permalink (Test: links must point to the
-        # direct posting, never jobright/simplify/jobright).
+        # link to the jobright.ai permalink -- links must point to the
+        # direct posting, never jobright/simplify/jobright.
         url = src[1] if (src and src[1]) else card.url
     else:
         raise ParseError(f"no description container at {card.url or feed_url()}")

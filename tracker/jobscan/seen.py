@@ -11,7 +11,7 @@ TERMINAL = {"applied", "deleted"}
 
 
 def applied_dedup_keys(conn: sqlite3.Connection) -> set[str]:
-    """dedup_key for every posting in the `applications` table — roles Test
+    """dedup_key for every posting in the `applications` table — roles
     applied to directly (not via /picks), which leave no seen_jobs row. run()
     drops a scanned posting whose dedup_key is in here so it never resurfaces."""
     rows = conn.execute("SELECT company, role FROM applications").fetchall()

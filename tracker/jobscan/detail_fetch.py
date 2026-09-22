@@ -39,7 +39,7 @@ _BLOCK_MARKERS = (
 
 QUESTIONS_HEADER = "--- Application questions ---"
 
-# Question labels that disqualify Test (Singaporean, needs sponsorship).
+# Question labels that disqualify a candidate who needs visa sponsorship.
 # NOT "require sponsorship?" / "authorized to work?" -- every posting asks
 # those, and asking means they consider sponsored candidates.
 _RESTRICTED_Q_RX = re.compile(

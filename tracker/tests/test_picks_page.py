@@ -137,10 +137,10 @@ def test_description_not_in_dom_until_details_opened(live_server, chrome_page):
     # Cmd+F / native find-in-page auto-opens a closed <details> whenever its
     # hidden content matches the search text. Every pick embeds its full JD
     # in a <details><pre>, and a JD routinely restates the same company/
-    # role/location words Test is actually searching for -- so a plain
+    # role/location words a user is actually searching for -- so a plain
     # title search force-opened every card's JD block at once, burying the
-    # small always-visible title/pills text he was looking for underneath a
-    # wall of expanded descriptions (told 2026-09-12). The JD text must not
+    # small always-visible title/pills text being looked for underneath a
+    # wall of expanded descriptions. The JD text must not
     # exist in the DOM at all until the user actually opens the details.
     base, db_path = live_server
     _seed(db_path)

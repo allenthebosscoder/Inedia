@@ -118,7 +118,7 @@ def test_run_swelist_path(tmp_path):
 
 
 def test_run_skips_postings_already_in_the_applications_table(tmp_path):
-    # Test applies to plenty of roles outside the pipeline (directly on an
+    # Plenty of roles get applied to outside the pipeline (directly on an
     # ATS). Those never touch seen_jobs, so the scan re-surfaces them unless
     # run() cross-checks the applications table. Match is by dedup_key, so
     # the ATS req-id suffix on the applications row must not defeat it.
