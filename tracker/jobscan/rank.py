@@ -24,7 +24,7 @@ RELEVANT = re.compile(
     r"electronic design|electronics design|electronic control|\belectrical\b|"
     r"application engineer|applications engineer|"
     r"hardware engineer|hardware design|hardware test|hardware validation|post.?silicon|"
-    r"lab test engineer|reliability engineer|reliability testing|failure analysis|"
+    r"lab test engineer|product test engineer|reliability engineer|reliability testing|failure analysis|"
     r"server platform|"
     r"systems? integration engineer|"
     r"power electronics|power system|controls engineer|control systems engineer|\bsilicon\b|\brf\b"
@@ -50,7 +50,7 @@ OFF_DOMAIN = re.compile(
 HARDWARE = re.compile(
     r"\b(fpga|firmware|embedded|verilog|rtl|asic|dsp|analog|silicon|mems|pcb|hbm|dram)\b"
     r"|\belectrical\b|electronic|hardware eng|hardware design|"
-    r"hardware test|hardware validation|post.?silicon|lab test engineer|reliability engineer|"
+    r"hardware test|hardware validation|post.?silicon|lab test engineer|product test engineer|reliability engineer|"
     r"reliability testing|failure analysis|server platform|design for test|"
     r"power electronics|power system|controls eng|physical design|ic design|design verification|"
     r"\brf\b", re.I)
