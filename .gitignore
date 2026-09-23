@@ -13,6 +13,7 @@ tracker/wk.json
 tracker/texput.log
 tracker/profile_data_private.py
 tracker/search_preferences_private.py
+tracker/jobscan/adapters/runway.py
 extension/docs/superpowers/
 extension/node_modules/
 extension/dist/

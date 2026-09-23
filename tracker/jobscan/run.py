@@ -14,6 +14,14 @@ from jobscan import seen
 from jobscan.adapters.base import BlockedError, dedup_key
 from jobscan.adapters.jobright import LoginRequired as JobrightLogin
 from jobscan.hardfilter import hardfilter, resolve_term
+# runway.io is a paid source, so jobscan/adapters/runway.py is gitignored --
+# present locally, absent from the tracked repo. Import optionally so a
+# fresh clone still works without it.
+try:
+    from jobscan.adapters.runway import LoginRequired as RunwayLogin
+except ImportError:
+    class RunwayLogin(Exception):  # noqa: N818 -- mirrors the real one when absent
+        pass
 from jobscan.prefilter import prefilter
 from jobscan.score import score
 
@@ -213,7 +221,7 @@ def run(db_path, feed_adapters, swelist_adapter, swelist_links, page, out_dir,
                     else:
                         s["candidates"] += 1
                         say("      → candidate")
-            except JobrightLogin:
+            except (JobrightLogin, RunwayLogin):
                 # A dead / logged-out session must abort the whole scan, not
                 # be swallowed as a per-adapter error -- scripts/scan_jobs.py
                 # catches this and prompts a re-login.

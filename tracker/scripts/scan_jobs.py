@@ -7,7 +7,7 @@ Runs headless (never steals focus) against the bundled-Chromium profile at
 ~/.jobtracker/chrome-profile; pass --show for a visible window when
 debugging. First-time login is a separate step:
 `python3 scripts/chrome_login.py` (opens a window; sign into jobright.ai and
-jobright.ai, close it). If the session has died this prints
+app.joinrunway.io, close it). If the session has died this prints
 "NOT LOGGED IN" and exits 2.
 """
 from __future__ import annotations
@@ -25,6 +25,17 @@ from jobscan.adapters.jobright import JobrightAdapter, LoginRequired as Jobright
 from jobscan.adapters.swelist import SwelistAdapter
 from jobscan.profile import launch
 from jobscan.run import run
+
+# runway.io is a paid source, so jobscan/adapters/runway.py is gitignored --
+# present locally, absent from the tracked repo. Import optionally so a
+# fresh clone still works without it.
+try:
+    from jobscan.adapters.runway import RunwayAdapter, LoginRequired as RunwayLogin
+except ImportError:
+    RunwayAdapter = None
+
+    class RunwayLogin(Exception):  # noqa: N818 -- mirrors the real one when absent
+        pass
 
 
 def load_swelist_links(path: str) -> list[dict]:
@@ -77,7 +88,7 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--show", action="store_true",
                     help="show the browser window (default: headless)")
     ap.add_argument("--no-swelist", action="store_true")
-    ap.add_argument("--only", choices=["jobright", "swelist", "jobnotifier", "company-wd"],
+    ap.add_argument("--only", choices=["jobright", "runway", "swelist", "jobnotifier", "company-wd"],
                     help="scan just this one source")
     ap.add_argument("--quiet", action="store_true", help="suppress per-job progress")
     return ap
@@ -90,6 +101,8 @@ def main(argv=None):
         load_swelist_links(os.path.join(args.out, "swelist_links.json"))
     feed_map = {"jobright": JobrightAdapter(),
                 "jobnotifier": JobnotifierAdapter(), "company-wd": CompanyWorkdayAdapter()}
+    if RunwayAdapter is not None:
+        feed_map["runway"] = RunwayAdapter()
     feeds, swelist, links = _select_sources(args.only, feed_map, links)
     if links:
         _progress(f"SWElist: {len(links)} link(s) queued")
@@ -102,7 +115,7 @@ def main(argv=None):
             detail_page = context.new_page()
             artifact = run(args.db, feeds, swelist, links, page, args.out,
                            progress=progress, detail_page=detail_page)
-    except JobrightLogin as e:
+    except (JobrightLogin, RunwayLogin) as e:
         print(f"NOT LOGGED IN: {e}. Run `python3 scripts/chrome_login.py`, "
               f"sign into that site, then run again.")
         return 2
