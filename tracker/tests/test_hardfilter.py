@@ -85,7 +85,14 @@ def test_drops_bachelors_tier_that_requires_prior_experience():
     # KLA: the Bachelor's tier needs 2 years a fresh grad won't have.
     for d in ["Master's Level Degree and 0 years related work experience; "
               "Bachelor's Level Degree and related work experience of 2 years",
-              "Bachelor's degree and 3 years of related work experience"]:
+              "Bachelor's degree and 3 years of related work experience",
+              # KLA (2026-09-23), same tiered-qualification meaning but with
+              # "or" instead of "and": "Master's Level Degree or work
+              # experience of 0 years, Bachelor's Level Degree or work
+              # experience of 1 years" -- the Bachelor's tier still needs a
+              # year of experience a fresh grad won't have.
+              "Master's Level Degree or work experience of 0 years, "
+              "Bachelor's Level Degree or work experience of 1 years"]:
         assert hardfilter(posting(desc=d + " " * 200)) == "experience", d
     # a 0-years Bachelor's tier is fine
     assert hardfilter(posting(desc="Bachelor's degree and 0 years of experience"

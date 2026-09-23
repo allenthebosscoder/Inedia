@@ -400,9 +400,10 @@ def _title_grad_year_dropped(role: str) -> bool:
 # "degree AND <n> years [of] experience" construction, not a loose mention
 # of years elsewhere in the JD.
 _BACHELOR_EXPERIENCE_RX = re.compile(
-    r"bachelor'?s\s+(?:level\s+)?degree\s+and\s+(?:related\s+work\s+)?experience\s+of\s+(\d+)\+?\s*years?"
-    r"|bachelor'?s\s+(?:level\s+)?degree\s+and\s+(\d+)\+?\s*years?\s+(?:of\s+)?(?:related\s+)?"
-    r"(?:work\s+)?experience", re.I)
+    r"bachelor'?s\s+(?:level\s+)?degree\s+(?:and|or)\s+(?:related\s+)?(?:work\s+)?"
+    r"experience\s+of\s+(\d+)\+?\s*years?"
+    r"|bachelor'?s\s+(?:level\s+)?degree\s+(?:and|or)\s+(\d+)\+?\s*years?\s+(?:of\s+)?"
+    r"(?:related\s+)?(?:work\s+)?experience", re.I)
 
 
 def _experience_dropped(text: str) -> bool:
