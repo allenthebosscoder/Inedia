@@ -43,6 +43,12 @@ def test_drops_no_sponsorship_form_field_and_indirect_phrasings():
         "You must have permanent work authorization in the United States.",
         "Candidates must be permanent residents or U.S. citizens.",
         "This position is not open to candidates requiring sponsorship.",
+        # Southwest Airlines (2026-09-23): "no ... sponsorship" with a long
+        # gap between them that the old pattern's single optional "visa "
+        # word didn't cover.
+        "U.S. citizenship or current authorization to work in the U.S. "
+        "required and no current or future work authorization sponsorship "
+        "available.",
         # Motorola (2026-09-09): the "unrestricted work authorization" screen
         "You are a U.S. Citizen, U.S. permanent resident or possess other "
         "unrestricted US work authorization.",

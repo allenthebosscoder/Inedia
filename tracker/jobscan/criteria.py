@@ -29,7 +29,7 @@ SPONSORSHIP_NEGATIVE = [
     r"unable\s+to\s+(?:provide|offer)\s+(?:visa\s+)?sponsor",
     r"do(?:es)?\s+not\s+sponsor",
     r"will\s+not\s+(?:offer|provide|sponsor)\b[^.]{0,40}\bsponsor",
-    r"no\s+(?:visa\s+)?sponsorship",
+    r"no\s+[^.]{0,40}sponsorship",
     r"(?:visa\s+)?sponsorship\b[^.]{0,40}\bis\s+not\s+available",
     r"not\s+eligible\s+for\b[^.]{0,50}\bsponsor",
     r"sponsorship\s+available\s*\?\s*no\b",
