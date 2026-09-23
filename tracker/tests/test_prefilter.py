@@ -14,6 +14,9 @@ from jobscan.prefilter import prefilter
     ("Remote - US", True),
     ("San Francisco, CA", True),
     ("Burnaby, BC, Canada + 2 more", False),  # simplify.jobs multi-location suffix
+    ("Tianjin (Teda)", False),  # NXP (2026-09-23) -- no "china" token, just a bare city
+    ("Shanghai, China", False),
+    ("Shenzhen", False),
 ])
 def test_is_us_location_token_boundaries(loc, expected):
     assert is_us_location(loc) is expected

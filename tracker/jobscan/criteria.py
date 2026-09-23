@@ -147,6 +147,10 @@ _NON_US_HINTS = [
     "singapore", "australia", "france", "netherlands", "remote - emea", "remote - apac",
     "remote - canada", "toronto", "vancouver", "bengaluru", "bangalore",
     "england", "scotland", "wales", "gb",
+    # Greater China (NXP, 2026-09-23: "Tianjin (Teda)" -- a bare city with no
+    # "china" token in it at all).
+    "china", "tianjin", "teda", "shanghai", "shenzhen", "beijing", "guangzhou",
+    "hong kong", "taiwan", "taipei", "suzhou", "chengdu", "hangzhou", "xian",
 ]
 
 
@@ -158,11 +162,14 @@ def is_us_location(location: str) -> bool:
     # listed location (e.g. "Burnaby, BC, Canada + 2 more") -- strip it before
     # segmenting so the country token isn't hidden inside "canada + 2 more".
     low = re.sub(r"\s*\+\s*\d+\s*more\s*$", "", low)
-    # Match single-token hints against whole comma/slash-delimited segments so
-    # "india" doesn't fire inside "Indianapolis" and "london" doesn't fire
-    # inside "New London, CT". Multi-token hints (", uk", "united kingdom",
-    # "remote - emea", …) still match as substrings.
-    segments = {s.strip() for s in re.split(r"[,/]", low) if s.strip()}
+    # Match single-token hints against whole comma/slash/paren-delimited
+    # segments so "india" doesn't fire inside "Indianapolis" and "london"
+    # doesn't fire inside "New London, CT". Multi-token hints (", uk",
+    # "united kingdom", "remote - emea", …) still match as substrings.
+    # Parens matter too -- "Tianjin (Teda)" has no comma/slash at all, so
+    # without splitting on "()" the whole thing is one segment and never
+    # equals the bare "tianjin" hint (NXP, 2026-09-23).
+    segments = {s.strip() for s in re.split(r"[,/()]", low) if s.strip()}
     for h in _NON_US_HINTS:
         multiword = any(c in h for c in " -,")
         if (h in low) if multiword else (h in segments):
