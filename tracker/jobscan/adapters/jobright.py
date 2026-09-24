@@ -205,6 +205,18 @@ def _source_jd(page, card: JobCard) -> tuple[str, str | None] | None:
     return (jd, real) if jd and not looks_blocked(jd) else ("", real)
 
 
+def _role_from_real_jd(description: str, card_role: str) -> str:
+    """detail_fetch._assemble() always puts the real ATS posting's own title
+    as the first line of the JD text it returns -- prefer that over
+    jobright's own card/email title, which is often a paraphrase or
+    reordering of the real one (Tencent, 2026-09-24: card said "Site
+    Reliability Engineer - SRE Intern", the real posting said "Site
+    Reliability Engineer (SRE) Intern"). Falls back to card_role when the
+    description is empty or its first line is blank."""
+    first_line = description.split("\n", 1)[0].strip()
+    return first_line or card_role
+
+
 def parse_detail(page, card: JobCard) -> JobPosting:
     req_el = (
         page.query_selector(SELECTORS["detail_requirements"])
@@ -213,8 +225,14 @@ def parse_detail(page, card: JobCard) -> JobPosting:
     )
     own = _text(page.query_selector(SELECTORS["detail_description"]))
     src = _source_jd(page, card)  # navigates `page` away -- do jobright DOM reads first
+    role = card.role
     if src and src[0]:
         description, url = src
+        # Only trust the first line as a title when it's the REAL posting's
+        # own JD text (src[0]) -- jobright's own scrape (the `own` branch
+        # below) isn't run through _assemble and its first line is whatever
+        # jobright's detail div happens to start with, not a title.
+        role = _role_from_real_jd(description, card.role)
     elif len(own) >= 40:
         description = own
         # We may know the real ATS url even though its content was
@@ -226,7 +244,7 @@ def parse_detail(page, card: JobCard) -> JobPosting:
         raise ParseError(f"no description container at {card.url or feed_url()}")
     return JobPosting(
         source=card.source, external_id=card.external_id, url=url,
-        company=card.company, role=card.role, location=card.location,
+        company=card.company, role=role, location=card.location,
         salary_hint=card.salary_hint, posted_at=card.posted_at,
         description=description,
         employment_type_hint="",
