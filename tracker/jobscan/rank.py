@@ -18,13 +18,14 @@ _PAST_SUMMER_RX = re.compile(r"summer\s+(\d{4})", re.I)
 # In-field titles. A role title must match one of these to stay.
 RELEVANT = re.compile(
     r"\b(fpga|firmware|embedded|verilog|vhdl|rtl|asic|soc|dsp|analog|photonic|"
-    r"semiconductor|microcontroller|vlsi|dft|mems|pcb|electronics|hbm|dram)\b"
+    r"semiconductor|microcontroller|vlsi|dft|mems|pcb|electronics|hbm|dram|hardware)\b"
     r"|signal process|radio frequency|physical design|ic design|design verification|"
     r"design evaluation engineer|design for test|"
     r"electronic design|electronics design|electronic control|\belectrical\b|"
     r"application engineer|applications engineer|"
     r"hardware engineer|hardware design|hardware test|hardware validation|post.?silicon|"
-    r"lab test engineer|product test engineer|reliability engineer|reliability testing|failure analysis|"
+    r"lab test engineer|product test engineer|systems performance engineer|"
+    r"reliability engineer|reliability testing|failure analysis|"
     r"server platform|"
     r"systems? integration engineer|"
     r"power electronics|power system|controls engineer|control systems engineer|\bsilicon\b|\brf\b"
@@ -48,9 +49,10 @@ OFF_DOMAIN = re.compile(
     re.I)
 
 HARDWARE = re.compile(
-    r"\b(fpga|firmware|embedded|verilog|rtl|asic|dsp|analog|silicon|mems|pcb|hbm|dram)\b"
+    r"\b(fpga|firmware|embedded|verilog|rtl|asic|dsp|analog|silicon|mems|pcb|hbm|dram|hardware)\b"
     r"|\belectrical\b|electronic|hardware eng|hardware design|"
-    r"hardware test|hardware validation|post.?silicon|lab test engineer|product test engineer|reliability engineer|"
+    r"hardware test|hardware validation|post.?silicon|lab test engineer|product test engineer|"
+    r"systems performance engineer|reliability engineer|"
     r"reliability testing|failure analysis|server platform|design for test|"
     r"power electronics|power system|controls eng|physical design|ic design|design verification|"
     r"\brf\b", re.I)

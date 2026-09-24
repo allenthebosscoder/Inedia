@@ -192,7 +192,9 @@ def test_relevant_matches_hardware_and_systems_titles():
               "Reliability Testing and Failure Analysis Intern",  # onsemi, 2026-09-16
               "Server Platform Intern",  # Jabil, 2026-09-16
               "Software Development Engineer Intern - Summer 2027 (USA)",  # Amazon, 2026-09-21 -- SDE title doesn't literally say "software engineer"/"software developer"/"swe"
-              "New College Grad - Product Test Engineer"]:  # Micron, 2026-09-22 -- "test engineer" alone wasn't matched, only "lab test engineer"
+              "New College Grad - Product Test Engineer",  # Micron, 2026-09-22 -- "test engineer" alone wasn't matched, only "lab test engineer"
+              "Hardware Intern",  # Arista Networks, 2026-09-24 -- bare "hardware" title had no match at all
+              "Intern - Systems Performance Engineer"]:  # Micron, 2026-09-24
         assert RELEVANT.search(t), t
     # but a customer-facing sales title with the same words still drops
     assert OFF_DOMAIN.search("Sales Application Engineer")
