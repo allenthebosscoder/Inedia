@@ -205,6 +205,15 @@ def _source_jd(page, card: JobCard) -> tuple[str, str | None] | None:
     return (jd, real) if jd and not looks_blocked(jd) else ("", real)
 
 
+# A handful of ATS pages render a cookie banner or nav chrome as the
+# extracted page text instead of the real JD (2026-09-26: SPX Technologies,
+# ESCO Automation, Karma Automotive, Amazon, Adobe), so the "first line" is
+# junk like "Skip to main content" -- trusting it as a title wrongly fails
+# RELEVANT and drops an otherwise-good role. Reject known boilerplate.
+_JUNK_TITLE_RX = re.compile(
+    r"^skip to\b|privacy policy|terms of use|cookies?\b", re.I)
+
+
 def _role_from_real_jd(description: str, card_role: str) -> str:
     """detail_fetch._assemble() always puts the real ATS posting's own title
     as the first line of the JD text it returns -- prefer that over
@@ -212,9 +221,12 @@ def _role_from_real_jd(description: str, card_role: str) -> str:
     reordering of the real one (Tencent, 2026-09-24: card said "Site
     Reliability Engineer - SRE Intern", the real posting said "Site
     Reliability Engineer (SRE) Intern"). Falls back to card_role when the
-    description is empty or its first line is blank."""
+    description is empty, its first line is blank, or the first line is
+    cookie/nav boilerplate rather than a real title."""
     first_line = description.split("\n", 1)[0].strip()
-    return first_line or card_role
+    if not first_line or _JUNK_TITLE_RX.search(first_line):
+        return card_role
+    return first_line
 
 
 def parse_detail(page, card: JobCard) -> JobPosting:
