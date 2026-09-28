@@ -133,6 +133,48 @@ def test_apply_missing_pick_is_404(client):
     assert client.post("/api/picks/999/apply").status_code == 404
 
 
+def test_outreach_creates_application_with_reaching_out_status(client):
+    client.post("/api/picks/bulk", json=_bulk_body())
+    pid = client.get("/api/picks").get_json()[0]["id"]
+
+    r = client.post(f"/api/picks/{pid}/outreach")
+    assert r.status_code == 200
+    app_id = r.get_json()["application_id"]
+
+    apps = client.get("/api/applications").get_json()
+    match = [a for a in apps if a["id"] == app_id][0]
+    assert match["company"] == "Acme"
+    assert match["role"] == "Firmware Intern"
+    assert match["status"] == "Reaching Out"
+    assert match["outreach_contacts"] == "[]"
+    assert match["latest_outreach_date"] == ""
+    assert match["apply_by_date"] == ""
+
+    pick = client.get("/api/picks").get_json()[0]
+    assert pick["status"] == "applied" and pick["application_id"] == app_id
+
+
+def test_outreach_twice_is_409(client):
+    client.post("/api/picks/bulk", json=_bulk_body())
+    pid = client.get("/api/picks").get_json()[0]["id"]
+    client.post(f"/api/picks/{pid}/outreach")
+    assert client.post(f"/api/picks/{pid}/outreach").status_code == 409
+
+
+def test_outreach_after_apply_is_409(client):
+    """A pick already actioned via /apply can't also be sent to /outreach --
+    daily_picks.status is 'applied' either way, so the existing guard covers
+    both directions."""
+    client.post("/api/picks/bulk", json=_bulk_body())
+    pid = client.get("/api/picks").get_json()[0]["id"]
+    client.post(f"/api/picks/{pid}/apply")
+    assert client.post(f"/api/picks/{pid}/outreach").status_code == 409
+
+
+def test_outreach_missing_pick_is_404(client):
+    assert client.post("/api/picks/999/outreach").status_code == 404
+
+
 def test_delete_removes_pick_and_marks_seen_deleted(client):
     client.post("/api/picks/bulk", json=_bulk_body())
     pid = client.get("/api/picks").get_json()[0]["id"]

@@ -125,6 +125,21 @@ function card(p, showFrom, compact) {
     });
     actions.appendChild(applyBtn);
 
+    const outreachBtn = document.createElement("button");
+    outreachBtn.dataset.act = "outreach";
+    outreachBtn.textContent = "Reaching Out";
+    outreachBtn.addEventListener("click", async () => {
+        outreachBtn.disabled = true;
+        const res = await fetch(`/api/picks/${p.id}/outreach`, { method: "POST" });
+        if (!res.ok) {
+            alert("Couldn't send this to Reaching Out (it may already be actioned or deleted).");
+            outreachBtn.disabled = false;
+            return;
+        }
+        load();
+    });
+    actions.appendChild(outreachBtn);
+
     const priorityBtn = document.createElement("button");
     priorityBtn.dataset.act = "priority";
     priorityBtn.textContent = p.priority ? "Unpriority" : "★ Priority";

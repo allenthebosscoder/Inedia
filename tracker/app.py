@@ -361,6 +361,40 @@ def create_app(db_path="tracker.db", seed=False):
         conn.close()
         return jsonify({"application_id": app_id})
 
+    @app.route("/api/picks/<int:pick_id>/outreach", methods=["POST"])
+    def outreach_pick(pick_id):
+        if _cross_origin_request():
+            return jsonify({"error": "cross-origin request rejected"}), 403
+        conn = get_db(app.config["DATABASE"])
+        pick = conn.execute("SELECT * FROM daily_picks WHERE id = ?", (pick_id,)).fetchone()
+        if pick is None:
+            conn.close()
+            return jsonify({"error": "not found"}), 404
+        if pick["status"] == "applied":
+            conn.close()
+            return jsonify({"error": "already applied"}), 409
+
+        app_type = pick["app_type"] if pick["app_type"] in TYPE_VALUES else "Other"
+        cur = conn.execute(
+            """INSERT INTO applications
+               (date_applied, company, role, type, status, referred, reply_received,
+                resume_used, notes)
+               VALUES (date('now'), ?, ?, ?, 'Reaching Out', 0, 0, '', ?)""",
+            (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}"),
+        )
+        app_id = cur.lastrowid
+        conn.execute(
+            "UPDATE daily_picks SET status='applied', application_id=?, updated_at=datetime('now') WHERE id=?",
+            (app_id, pick_id),
+        )
+        conn.execute(
+            "UPDATE seen_jobs SET disposition='applied', dedup_key=?, last_seen=datetime('now') WHERE job_key=?",
+            (dedup_key(pick["company"], pick["role"]), pick["job_key"]),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"application_id": app_id})
+
     @app.route("/api/picks/<int:pick_id>/priority", methods=["POST"])
     def toggle_pick_priority(pick_id):
         if _cross_origin_request():
