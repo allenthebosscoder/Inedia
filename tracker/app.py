@@ -8,7 +8,7 @@ from seed import run_seed
 from profile_data import build_profile
 from jobscan.adapters.base import dedup_key
 
-STATUS_VALUES = {"Applied", "Interviewing", "Accepted", "Rejected", "Incomplete"}
+STATUS_VALUES = {"Applied", "Interviewing", "Accepted", "Rejected", "Incomplete", "Reaching Out"}
 TYPE_VALUES = {"Intern", "Entry", "Other"}
 PICK_REQUIRED_FIELDS = ["job_key", "source", "url", "company", "role"]
 # seen_jobs dispositions a DELETE may write. 'deleted' = a real user

@@ -9,12 +9,14 @@ CREATE TABLE IF NOT EXISTS applications (
     type TEXT NOT NULL,
     status TEXT NOT NULL,
     referred INTEGER NOT NULL DEFAULT 0,
-    outreach_sent INTEGER NOT NULL DEFAULT 0,
     reply_received INTEGER NOT NULL DEFAULT 0,
     resume_used TEXT DEFAULT '',
     notes TEXT DEFAULT '',
     contact_name TEXT DEFAULT '',
     drafted_email TEXT DEFAULT '',
+    outreach_contacts TEXT DEFAULT '[]',
+    latest_outreach_date TEXT DEFAULT '',
+    apply_by_date TEXT DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -74,6 +76,9 @@ MIGRATION_COLUMNS = {
     "applications": {
         "contact_name": "TEXT DEFAULT ''",
         "drafted_email": "TEXT DEFAULT ''",
+        "outreach_contacts": "TEXT DEFAULT '[]'",
+        "latest_outreach_date": "TEXT DEFAULT ''",
+        "apply_by_date": "TEXT DEFAULT ''",
     },
     "seen_jobs": {
         "dedup_key": "TEXT DEFAULT ''",
@@ -87,10 +92,13 @@ MIGRATION_COLUMNS = {
 # Columns dropped from a table after being retired — the "Worth Outreach?"
 # AI-suggestion workflow (reach_out_suggestion/suggestion_reason) was
 # replaced 2026-09-13 by directly tracking outreach_sent/reply_received/
-# referred on each row, so a fresh DB never creates these and an existing
-# one has them removed on next startup (SQLite 3.35+ supports DROP COLUMN).
+# referred on each row; outreach_sent itself was then replaced 2026-09-28
+# by the Reaching Out tab (status value + outreach_contacts/
+# latest_outreach_date/apply_by_date columns) — a fresh DB never creates
+# either retired column, an existing one has them removed on next startup
+# (SQLite 3.35+ supports DROP COLUMN).
 DROPPED_COLUMNS = {
-    "applications": ["reach_out_suggestion", "suggestion_reason"],
+    "applications": ["reach_out_suggestion", "suggestion_reason", "outreach_sent"],
 }
 
 

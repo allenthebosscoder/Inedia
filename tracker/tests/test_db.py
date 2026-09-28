@@ -12,11 +12,106 @@ def test_init_db_creates_applications_table(tmp_path):
     conn.close()
     expected = {
         "id", "date_applied", "company", "role", "type", "status",
-        "referred", "outreach_sent", "reply_received", "resume_used",
+        "referred", "reply_received", "resume_used",
         "notes", "contact_name", "drafted_email",
+        "outreach_contacts", "latest_outreach_date", "apply_by_date",
         "created_at", "updated_at",
     }
     assert columns == expected
+
+
+def test_init_db_migrates_database_missing_outreach_tab_columns(tmp_path):
+    """A DB from before the Reaching Out tab (has outreach_sent, lacks the
+    three new columns) must gain the new columns with the documented
+    defaults on next startup."""
+    db_path = str(tmp_path / "old_pre_reaching_out.db")
+    conn = sqlite3.connect(db_path)
+    conn.execute("""
+        CREATE TABLE applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date_applied TEXT NOT NULL,
+            company TEXT NOT NULL,
+            role TEXT NOT NULL,
+            type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            referred INTEGER NOT NULL DEFAULT 0,
+            outreach_sent INTEGER NOT NULL DEFAULT 0,
+            reply_received INTEGER NOT NULL DEFAULT 0,
+            resume_used TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            contact_name TEXT DEFAULT '',
+            drafted_email TEXT DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+    conn.execute(
+        "INSERT INTO applications (date_applied, company, role, type, status, outreach_sent) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        ("2026-09-01", "Acme", "SWE", "Entry", "Applied", 1),
+    )
+    conn.commit()
+    conn.close()
+
+    init_db(db_path)
+
+    conn = get_db(db_path)
+    row = conn.execute("SELECT * FROM applications WHERE company = 'Acme'").fetchone()
+    columns = {col["name"] for col in conn.execute("PRAGMA table_info(applications)").fetchall()}
+    conn.close()
+
+    assert "outreach_sent" not in columns
+    assert "outreach_contacts" in columns and row["outreach_contacts"] == "[]"
+    assert "latest_outreach_date" in columns and row["latest_outreach_date"] == ""
+    assert "apply_by_date" in columns and row["apply_by_date"] == ""
+    assert row["company"] == "Acme"
+
+
+def test_init_db_drops_outreach_sent_column(tmp_path):
+    """outreach_sent is retired in favor of the Reaching Out tab -- an
+    existing DB carrying it (and data in it) must have it dropped on next
+    startup, without losing any other column's data."""
+    db_path = str(tmp_path / "old_with_outreach_sent.db")
+    conn = sqlite3.connect(db_path)
+    conn.execute("""
+        CREATE TABLE applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date_applied TEXT NOT NULL,
+            company TEXT NOT NULL,
+            role TEXT NOT NULL,
+            type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            referred INTEGER NOT NULL DEFAULT 0,
+            outreach_sent INTEGER NOT NULL DEFAULT 0,
+            reply_received INTEGER NOT NULL DEFAULT 0,
+            resume_used TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            contact_name TEXT DEFAULT '',
+            drafted_email TEXT DEFAULT '',
+            outreach_contacts TEXT DEFAULT '[]',
+            latest_outreach_date TEXT DEFAULT '',
+            apply_by_date TEXT DEFAULT '',
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+    conn.execute(
+        "INSERT INTO applications (date_applied, company, role, type, status, outreach_sent, notes) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        ("2026-09-01", "Beta", "SWE", "Entry", "Applied", 1, "keep me"),
+    )
+    conn.commit()
+    conn.close()
+
+    init_db(db_path)
+
+    conn = get_db(db_path)
+    row = conn.execute("SELECT * FROM applications WHERE company = 'Beta'").fetchone()
+    columns = {col["name"] for col in conn.execute("PRAGMA table_info(applications)").fetchall()}
+    conn.close()
+
+    assert "outreach_sent" not in columns
+    assert row["notes"] == "keep me"
 
 
 def test_init_db_migrates_database_missing_outreach_columns(tmp_path):
