@@ -21,3 +21,5 @@ extension/.playwright/
 extension/.playwright-mcp/
 extension/playwright-report/
 extension/test-results/
+
+.worktrees/
