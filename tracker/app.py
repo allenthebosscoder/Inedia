@@ -86,7 +86,7 @@ def create_app(db_path="tracker.db", seed=False):
 
         sortable_fields = {
             "id", "date_applied", "company", "role", "type", "status",
-            "referred", "outreach_sent", "reply_received", "created_at",
+            "referred", "reply_received", "created_at",
         }
         sort = request.args.get("sort", "date_applied")
         if sort not in sortable_fields:
@@ -343,9 +343,9 @@ def create_app(db_path="tracker.db", seed=False):
         app_type = pick["app_type"] if pick["app_type"] in TYPE_VALUES else "Other"
         cur = conn.execute(
             """INSERT INTO applications
-               (date_applied, company, role, type, status, referred, outreach_sent,
+               (date_applied, company, role, type, status, referred,
                 reply_received, resume_used, notes)
-               VALUES (date('now'), ?, ?, ?, 'Applied', 0, 0, 0, '', ?)""",
+               VALUES (date('now'), ?, ?, ?, 'Applied', 0, 0, '', ?)""",
             (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}"),
         )
         app_id = cur.lastrowid
@@ -441,8 +441,8 @@ def create_app(db_path="tracker.db", seed=False):
         cursor = conn.execute(
             """
             INSERT INTO applications
-                (date_applied, company, role, type, status, referred, outreach_sent, reply_received, resume_used, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (date_applied, company, role, type, status, referred, reply_received, resume_used, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["date_applied"],
@@ -451,7 +451,6 @@ def create_app(db_path="tracker.db", seed=False):
                 data["type"],
                 data["status"],
                 bool(data.get("referred", False)),
-                bool(data.get("outreach_sent", False)),
                 bool(data.get("reply_received", False)),
                 data.get("resume_used", ""),
                 data.get("notes", ""),
@@ -482,7 +481,7 @@ def create_app(db_path="tracker.db", seed=False):
 
         allowed_fields = {
             "date_applied", "company", "role", "type", "status",
-            "referred", "outreach_sent", "reply_received", "resume_used", "notes",
+            "referred", "reply_received", "resume_used", "notes",
             "contact_name", "drafted_email",
         }
         updates = {k: v for k, v in data.items() if k in allowed_fields}
@@ -495,6 +494,35 @@ def create_app(db_path="tracker.db", seed=False):
         conn.execute(
             f"UPDATE applications SET {set_clause}, updated_at = datetime('now') WHERE id = ?",
             values,
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True})
+
+    @app.route("/api/applications/<int:app_id>/outreach-contact", methods=["POST"])
+    def add_outreach_contact(app_id):
+        data = request.get_json(force=True) or {}
+        conn = get_db(app.config["DATABASE"])
+        existing = conn.execute(
+            "SELECT outreach_contacts FROM applications WHERE id = ?", (app_id,)
+        ).fetchone()
+        if existing is None:
+            conn.close()
+            return jsonify({"error": "not found"}), 404
+
+        contacts = json.loads(existing["outreach_contacts"] or "[]")
+        date_sent = data.get("date_sent") or date.today().isoformat()
+        contacts.append({"name": data.get("name", ""), "date_sent": date_sent})
+
+        latest = max(c["date_sent"] for c in contacts)
+        apply_by = (datetime.strptime(latest, "%Y-%m-%d").date() + timedelta(days=5)).isoformat()
+
+        conn.execute(
+            """UPDATE applications
+               SET outreach_contacts = ?, latest_outreach_date = ?, apply_by_date = ?,
+                   updated_at = datetime('now')
+               WHERE id = ?""",
+            (json.dumps(contacts), latest, apply_by, app_id),
         )
         conn.commit()
         conn.close()
@@ -528,9 +556,9 @@ def create_app(db_path="tracker.db", seed=False):
             if len(fields) < 5:
                 skipped += 1
                 continue
-            padded = fields + [""] * (9 - len(fields))
+            padded = fields + [""] * (8 - len(fields))
             (date_applied, company, role, type_, status,
-             referred, outreach_sent, reply_received, notes) = padded[:9]
+             referred, reply_received, notes) = padded[:8]
 
             if type_ not in TYPE_VALUES or status not in STATUS_VALUES:
                 skipped += 1
@@ -539,13 +567,12 @@ def create_app(db_path="tracker.db", seed=False):
             conn.execute(
                 """
                 INSERT INTO applications
-                    (date_applied, company, role, type, status, referred, outreach_sent, reply_received, resume_used, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?)
+                    (date_applied, company, role, type, status, referred, reply_received, resume_used, notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?)
                 """,
                 (
                     date_applied, company, role, type_, status,
                     referred.strip().lower() == "yes",
-                    outreach_sent.strip().lower() == "yes",
                     reply_received.strip().lower() == "yes",
                     notes,
                 ),

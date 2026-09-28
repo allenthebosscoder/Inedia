@@ -172,7 +172,7 @@ def test_list_applications_sort_by_referred(client):
 
 
 def test_paste_applications_inserts_valid_rows(client):
-    text = "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tNo\tsome note"
+    text = "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tsome note"
     resp = client.post("/api/applications/paste", json={"text": text})
     assert resp.status_code == 200
     assert resp.get_json() == {"inserted": 1, "skipped": 0}
@@ -184,16 +184,16 @@ def test_paste_applications_inserts_valid_rows(client):
 
 def test_paste_applications_skips_malformed_rows(client):
     text = "\n".join([
-        "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tNo\tok row",
+        "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tok row",
         "not enough columns",
-        "2026-08-18\tBeta\tSWE\tBogusType\tApplied\tNo\tNo\tNo\tbad type",
+        "2026-08-18\tBeta\tSWE\tBogusType\tApplied\tNo\tNo\tbad type",
     ])
     resp = client.post("/api/applications/paste", json={"text": text})
     assert resp.get_json() == {"inserted": 1, "skipped": 2}
 
 
 def test_paste_applications_crlf_notes_no_trailing_cr(client):
-    text = "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tNo\tsome note\r\n"
+    text = "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tsome note\r\n"
     resp = client.post("/api/applications/paste", json={"text": text})
     assert resp.get_json() == {"inserted": 1, "skipped": 0}
 
@@ -396,16 +396,132 @@ def test_update_application_rejects_retired_reach_out_suggestion_field(client):
     assert patch_resp.status_code == 400
 
 
-def test_update_application_outreach_sent(client):
+def test_update_application_rejects_retired_outreach_sent_field(client):
+    """outreach_sent was retired 2026-09-28 in favor of the Reaching Out
+    tab -- a PATCH carrying only that field now has nothing left to apply."""
     create_resp = client.post("/api/applications", json={
         "date_applied": "2026-08-18", "company": "Acme", "role": "SWE",
         "type": "Entry", "status": "Applied",
     })
     app_id = create_resp.get_json()["id"]
     patch_resp = client.patch(f"/api/applications/{app_id}", json={"outreach_sent": True})
+    assert patch_resp.status_code == 400
+
+
+def test_patch_status_and_date_applied_together(client):
+    """The frontend stamps date_applied in the same PATCH call as the
+    status change when a row leaves Reaching Out for Applied -- confirm
+    the generic PATCH endpoint applies both fields from one request."""
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-20", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+
+    patch_resp = client.patch(f"/api/applications/{app_id}", json={
+        "status": "Applied", "date_applied": "2026-09-28",
+    })
     assert patch_resp.status_code == 200
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["status"] == "Applied"
+    assert row["date_applied"] == "2026-09-28"
+
+
+def test_patch_status_reaching_out_to_rejected_leaves_date_applied_unchanged(client):
+    """Moving straight from Reaching Out to Rejected (skipping Applied --
+    e.g. a contact says no during outreach) needs no special handling:
+    date_applied stays whatever it was, since the client has no reason to
+    send it in that PATCH."""
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-20", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+
+    patch_resp = client.patch(f"/api/applications/{app_id}", json={"status": "Rejected"})
+    assert patch_resp.status_code == 200
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["status"] == "Rejected"
+    assert row["date_applied"] == "2026-09-20"
+
+
+def test_outreach_contact_sets_dates_on_first_contact(client):
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+
+    resp = client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Jane Doe", "date_sent": "2026-09-28",
+    })
+    assert resp.status_code == 200
+
     rows = client.get("/api/applications").get_json()
-    assert rows[0]["outreach_sent"] == 1
+    row = rows[0]
+    assert row["latest_outreach_date"] == "2026-09-28"
+    assert row["apply_by_date"] == "2026-10-03"
+    import json as jsonlib
+    assert jsonlib.loads(row["outreach_contacts"]) == [{"name": "Jane Doe", "date_sent": "2026-09-28"}]
+
+
+def test_outreach_contact_later_date_advances_deadline(client):
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Jane Doe", "date_sent": "2026-09-28",
+    })
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "John Roe", "date_sent": "2026-09-30",
+    })
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == "2026-09-30"
+    assert row["apply_by_date"] == "2026-10-05"
+
+
+def test_outreach_contact_earlier_date_does_not_move_deadline_backward(client):
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Jane Doe", "date_sent": "2026-09-30",
+    })
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Backdated Contact", "date_sent": "2026-09-20",
+    })
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == "2026-09-30"
+    assert row["apply_by_date"] == "2026-10-05"
+
+
+def test_outreach_contact_defaults_date_to_today(client, monkeypatch):
+    import app as app_module
+    monkeypatch.setattr(app_module, "date", type("FixedDate", (), {
+        "today": staticmethod(lambda: date(2026, 9, 28)),
+    }))
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={"name": "Jane Doe"})
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == "2026-09-28"
+
+
+def test_outreach_contact_missing_application_is_404(client):
+    resp = client.post("/api/applications/999/outreach-contact", json={"name": "Jane Doe"})
+    assert resp.status_code == 404
 
 
 def test_update_application_reply_received_and_referred(client):

@@ -11,14 +11,14 @@ def run_seed(db_path):
 
     for row in SEED_ROWS:
         (date_applied, company, role, type_, status,
-         referred, outreach_sent, reply_received, notes) = row
+         referred, reply_received, notes) = row
         conn.execute(
             """
             INSERT INTO applications
-                (date_applied, company, role, type, status, referred, outreach_sent, reply_received, resume_used, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?)
+                (date_applied, company, role, type, status, referred, reply_received, resume_used, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, '', ?)
             """,
-            (date_applied, company, role, type_, status, referred, outreach_sent, reply_received, notes),
+            (date_applied, company, role, type_, status, referred, reply_received, notes),
         )
     conn.commit()
     conn.close()
