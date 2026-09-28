@@ -1,10 +1,12 @@
-const STATUSES = ["Applied", "Interviewing", "Accepted", "Rejected", "Incomplete"];
+const STATUSES = ["Applied", "Interviewing", "Accepted", "Rejected", "Incomplete", "Reaching Out"];
+const TODAY = new Date().toLocaleDateString("en-CA");
 
 async function fetchApplications() {
     const tab = window.currentTab || "applying";
     const company = document.getElementById("filter-company").value;
     const params = new URLSearchParams();
     if (tab === "rejected") params.set("status", "Rejected");
+    if (tab === "reaching-out") params.set("status", "Reaching Out");
     if (company) params.set("company", company);
     if (window.currentSort) {
         params.set("sort", window.currentSort.field);
@@ -13,7 +15,7 @@ async function fetchApplications() {
     const resp = await fetch(`/api/applications?${params.toString()}`);
     let rows = await resp.json();
     if (tab === "applying") {
-        rows = rows.filter((row) => row.status !== "Rejected");
+        rows = rows.filter((row) => row.status !== "Rejected" && row.status !== "Reaching Out");
     }
     renderRows(rows);
     fetchStats();
@@ -37,6 +39,9 @@ function renderRows(rows) {
     body.innerHTML = "";
     for (const row of rows) {
         const tr = document.createElement("tr");
+        if (row.apply_by_date && row.apply_by_date < TODAY) {
+            tr.classList.add("row-overdue");
+        }
 
         tr.appendChild(makeCell(row.id));
         tr.appendChild(makeCell(row.date_applied));
@@ -44,9 +49,10 @@ function renderRows(rows) {
         tr.appendChild(makeCell(row.role));
         tr.appendChild(makeCell(row.type));
         tr.appendChild(makeStatusCell(row));
-        tr.appendChild(makeToggleCell(row, "outreach_sent"));
-        tr.appendChild(makeToggleCell(row, "reply_received", "outreach_sent"));
-        tr.appendChild(makeToggleCell(row, "referred", "outreach_sent"));
+        tr.appendChild(makeApplyByCell(row));
+        tr.appendChild(makeContactsCell(row));
+        tr.appendChild(makeToggleCell(row, "reply_received"));
+        tr.appendChild(makeToggleCell(row, "referred"));
         tr.appendChild(makeEditableCell(row, "notes"));
         tr.appendChild(makeDeleteCell(row));
 
@@ -60,10 +66,14 @@ function makeCell(text) {
     return td;
 }
 
+function statusClassSuffix(status) {
+    return status.replace(/\s+/g, "-");
+}
+
 function makeStatusCell(row) {
     const td = document.createElement("td");
     const select = document.createElement("select");
-    select.className = `status-select status-${row.status}`;
+    select.className = `status-select status-${statusClassSuffix(row.status)}`;
     for (const status of STATUSES) {
         const option = document.createElement("option");
         option.value = status;
@@ -72,22 +82,22 @@ function makeStatusCell(row) {
         select.appendChild(option);
     }
     select.addEventListener("change", async () => {
-        const ok = await updateApplication(row.id, { status: select.value });
+        const fields = { status: select.value };
+        if (row.status === "Reaching Out" && select.value === "Applied") {
+            fields.date_applied = TODAY;
+        }
+        const ok = await updateApplication(row.id, fields);
         if (ok) {
-            select.className = `status-select status-${select.value}`;
+            select.className = `status-select status-${statusClassSuffix(select.value)}`;
+            row.status = select.value;
         }
     });
     td.appendChild(select);
     return td;
 }
 
-function makeToggleCell(row, field, gateField) {
+function makeToggleCell(row, field) {
     const td = document.createElement("td");
-    if (gateField && !row[gateField]) {
-        td.className = "toggle-dash";
-        td.textContent = "—";
-        return td;
-    }
     const button = document.createElement("button");
     const value = !!row[field];
     button.className = `toggle-pill ${value ? "toggle-yes" : "toggle-no"}`;
@@ -97,6 +107,49 @@ function makeToggleCell(row, field, gateField) {
         fetchApplications();
     });
     td.appendChild(button);
+    return td;
+}
+
+function makeApplyByCell(row) {
+    const td = document.createElement("td");
+    td.className = "reaching-out-col";
+    td.textContent = row.apply_by_date || "";
+    return td;
+}
+
+function makeContactsCell(row) {
+    const td = document.createElement("td");
+    td.className = "reaching-out-col contacts-cell";
+
+    const contacts = row.outreach_contacts ? JSON.parse(row.outreach_contacts) : [];
+    const list = document.createElement("ul");
+    list.className = "contacts-list";
+    for (const contact of contacts) {
+        const li = document.createElement("li");
+        li.textContent = `${contact.name} — ${contact.date_sent}`;
+        list.appendChild(li);
+    }
+    td.appendChild(list);
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "Contact name";
+    nameInput.className = "contact-name-input";
+    td.appendChild(nameInput);
+
+    const logBtn = document.createElement("button");
+    logBtn.textContent = "Log Contact";
+    logBtn.addEventListener("click", async () => {
+        if (!nameInput.value.trim()) return;
+        await fetch(`/api/applications/${row.id}/outreach-contact`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: nameInput.value.trim() }),
+        });
+        fetchApplications();
+    });
+    td.appendChild(logBtn);
+
     return td;
 }
 
@@ -187,6 +240,8 @@ document.querySelectorAll(".tab-button").forEach((button) => {
         document.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("active"));
         button.classList.add("active");
         window.currentTab = button.dataset.tab;
+        document.getElementById("applications-table")
+            .classList.toggle("tab-reaching-out", window.currentTab === "reaching-out");
         fetchApplications();
     });
 });

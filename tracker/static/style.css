@@ -22,6 +22,8 @@
     --status-rejected-text: #c3323f;
     --status-incomplete-bg: #fff6e2;
     --status-incomplete-text: #9c6a05;
+    --status-reaching-out-bg: #eef2ff;
+    --status-reaching-out-text: #4451e0;
 }
 
 * { box-sizing: border-box; }
@@ -206,6 +208,7 @@ select.status-select {
 .status-Accepted { background-color: var(--status-accepted-bg); color: var(--status-accepted-text); }
 .status-Rejected { background-color: var(--status-rejected-bg); color: var(--status-rejected-text); }
 .status-Incomplete { background-color: var(--status-incomplete-bg); color: var(--status-incomplete-text); }
+.status-Reaching-Out { background-color: var(--status-reaching-out-bg); color: var(--status-reaching-out-text); }
 
 .toggle-pill {
     border: none;
@@ -222,6 +225,22 @@ select.status-select {
 .toggle-dash {
     color: #b5b7c0;
     text-align: center;
+}
+
+.reaching-out-col { display: none; }
+table.tab-reaching-out .reaching-out-col { display: table-cell; }
+
+.row-overdue { background-color: #fff7d6; }
+
+.contacts-list {
+    margin: 0 0 0.35rem 0;
+    padding-left: 1.1rem;
+    font-size: 0.85rem;
+}
+
+.contact-name-input {
+    width: 8rem;
+    margin-right: 0.35rem;
 }
 
 /* ---- applying/rejected tabs (within the tracker page) ---- */

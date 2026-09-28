@@ -28,6 +28,7 @@
             <option value="Accepted">Accepted</option>
             <option value="Rejected">Rejected</option>
             <option value="Incomplete">Incomplete</option>
+            <option value="Reaching Out">Reaching Out</option>
         </select>
         <button type="submit">Add</button>
     </form>
@@ -35,13 +36,14 @@
     <details>
         <summary>Paste rows</summary>
         <textarea id="paste-textarea" rows="6" cols="80"
-            placeholder="Paste tab-separated rows: date&#9;company&#9;role&#9;type&#9;status&#9;referred&#9;outreach_sent&#9;reply_received&#9;notes"></textarea>
+            placeholder="Paste tab-separated rows: date&#9;company&#9;role&#9;type&#9;status&#9;referred&#9;reply_received&#9;notes"></textarea>
         <button id="paste-submit" type="button">Import pasted rows</button>
         <span id="paste-result"></span>
     </details>
 
     <div class="tabs">
         <button type="button" class="tab-button active" data-tab="applying">Applying</button>
+        <button type="button" class="tab-button" data-tab="reaching-out">Reaching Out</button>
         <button type="button" class="tab-button" data-tab="rejected">Rejected</button>
     </div>
 
@@ -80,7 +82,8 @@
                 <th data-sort="role">Role</th>
                 <th data-sort="type">Type</th>
                 <th data-sort="status">Status</th>
-                <th data-sort="outreach_sent">Outreach Sent</th>
+                <th class="reaching-out-col" data-sort="apply_by_date">Apply By</th>
+                <th class="reaching-out-col">Contacts</th>
                 <th data-sort="reply_received">Reply Received</th>
                 <th data-sort="referred">Referred</th>
                 <th>Notes</th>
