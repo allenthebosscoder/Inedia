@@ -56,6 +56,11 @@ def compute_stats(rows, today=None):
     return {"applied": applied, "rejected": rejected, "this_week": this_week, "today": today_count}
 
 
+def _apply_by_date(latest_outreach_date: str) -> str:
+    """5 days after the given date, in the same YYYY-MM-DD shape."""
+    return (datetime.strptime(latest_outreach_date, "%Y-%m-%d").date() + timedelta(days=5)).isoformat()
+
+
 def _cross_origin_request() -> bool:
     """True if the request carries an Origin header pointing somewhere other
     than this same local dev server -- a cross-origin page's fetch() would
@@ -233,6 +238,7 @@ def create_app(db_path="tracker.db", seed=False):
                 """SELECT * FROM daily_picks
                    WHERE status = 'new'
                       OR (status = 'applied' AND date(updated_at) = date('now'))
+                      OR (status = 'reaching_out' AND date(updated_at) = date('now'))
                    ORDER BY rank IS NULL, rank ASC, id ASC"""
             ).fetchall()
         conn.close()
@@ -336,7 +342,7 @@ def create_app(db_path="tracker.db", seed=False):
         if pick is None:
             conn.close()
             return jsonify({"error": "not found"}), 404
-        if pick["status"] == "applied":
+        if pick["status"] in ("applied", "reaching_out"):
             conn.close()
             return jsonify({"error": "already applied"}), 409
 
@@ -370,21 +376,23 @@ def create_app(db_path="tracker.db", seed=False):
         if pick is None:
             conn.close()
             return jsonify({"error": "not found"}), 404
-        if pick["status"] == "applied":
+        if pick["status"] in ("applied", "reaching_out"):
             conn.close()
             return jsonify({"error": "already applied"}), 409
 
         app_type = pick["app_type"] if pick["app_type"] in TYPE_VALUES else "Other"
+        today = date.today().isoformat()
         cur = conn.execute(
             """INSERT INTO applications
                (date_applied, company, role, type, status, referred, reply_received,
-                resume_used, notes)
-               VALUES (date('now'), ?, ?, ?, 'Reaching Out', 0, 0, '', ?)""",
-            (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}"),
+                resume_used, notes, latest_outreach_date, apply_by_date)
+               VALUES (date('now'), ?, ?, ?, 'Reaching Out', 0, 0, '', ?, ?, ?)""",
+            (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}",
+             today, _apply_by_date(today)),
         )
         app_id = cur.lastrowid
         conn.execute(
-            "UPDATE daily_picks SET status='applied', application_id=?, updated_at=datetime('now') WHERE id=?",
+            "UPDATE daily_picks SET status='reaching_out', application_id=?, updated_at=datetime('now') WHERE id=?",
             (app_id, pick_id),
         )
         conn.execute(
@@ -471,12 +479,22 @@ def create_app(db_path="tracker.db", seed=False):
         if data["status"] not in STATUS_VALUES:
             return jsonify({"error": f"invalid status: {data['status']}"}), 400
 
+        # A row created straight into Reaching Out counts its own creation
+        # date as day zero of outreach, so Apply By is populated immediately
+        # instead of staying blank until a contact is logged.
+        latest_outreach_date = data["date_applied"] if data["status"] == "Reaching Out" else ""
+        try:
+            apply_by_date = _apply_by_date(latest_outreach_date) if latest_outreach_date else ""
+        except ValueError:
+            return jsonify({"error": f"invalid date_applied: {data['date_applied']}"}), 400
+
         conn = get_db(app.config["DATABASE"])
         cursor = conn.execute(
             """
             INSERT INTO applications
-                (date_applied, company, role, type, status, referred, reply_received, resume_used, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (date_applied, company, role, type, status, referred, reply_received, resume_used, notes,
+                 latest_outreach_date, apply_by_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["date_applied"],
@@ -488,6 +506,8 @@ def create_app(db_path="tracker.db", seed=False):
                 bool(data.get("reply_received", False)),
                 data.get("resume_used", ""),
                 data.get("notes", ""),
+                latest_outreach_date,
+                apply_by_date,
             ),
         )
         conn.commit()
@@ -538,7 +558,7 @@ def create_app(db_path="tracker.db", seed=False):
         data = request.get_json(force=True) or {}
         conn = get_db(app.config["DATABASE"])
         existing = conn.execute(
-            "SELECT outreach_contacts FROM applications WHERE id = ?", (app_id,)
+            "SELECT outreach_contacts, latest_outreach_date FROM applications WHERE id = ?", (app_id,)
         ).fetchone()
         if existing is None:
             conn.close()
@@ -548,8 +568,14 @@ def create_app(db_path="tracker.db", seed=False):
         date_sent = data.get("date_sent") or date.today().isoformat()
         contacts.append({"name": data.get("name", ""), "date_sent": date_sent})
 
-        latest = max(c["date_sent"] for c in contacts)
-        apply_by = (datetime.strptime(latest, "%Y-%m-%d").date() + timedelta(days=5)).isoformat()
+        # A row created straight into Reaching Out already has a baseline
+        # latest_outreach_date (its own creation date) -- a backdated
+        # contact must not pull the deadline earlier than that baseline.
+        candidates = [c["date_sent"] for c in contacts]
+        if existing["latest_outreach_date"]:
+            candidates.append(existing["latest_outreach_date"])
+        latest = max(candidates)
+        apply_by = _apply_by_date(latest)
 
         conn.execute(
             """UPDATE applications
@@ -598,17 +624,29 @@ def create_app(db_path="tracker.db", seed=False):
                 skipped += 1
                 continue
 
+            latest_outreach_date = date_applied if status == "Reaching Out" else ""
+            try:
+                apply_by_date = _apply_by_date(latest_outreach_date) if latest_outreach_date else ""
+            except ValueError:
+                # date_applied wasn't a parseable YYYY-MM-DD -- still import
+                # the row (paste rows are free text), just leave Apply By
+                # blank rather than failing the whole import.
+                apply_by_date = ""
+
             conn.execute(
                 """
                 INSERT INTO applications
-                    (date_applied, company, role, type, status, referred, reply_received, resume_used, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?)
+                    (date_applied, company, role, type, status, referred, reply_received, resume_used, notes,
+                     latest_outreach_date, apply_by_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?)
                 """,
                 (
                     date_applied, company, role, type_, status,
                     referred.strip().lower() == "yes",
                     reply_received.strip().lower() == "yes",
                     notes,
+                    latest_outreach_date,
+                    apply_by_date,
                 ),
             )
             inserted += 1

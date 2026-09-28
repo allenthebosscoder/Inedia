@@ -543,6 +543,49 @@ def test_outreach_contact_earlier_date_does_not_move_deadline_backward(client):
     assert row["apply_by_date"] == "2026-10-05"
 
 
+def test_outreach_contact_earlier_than_creation_baseline_does_not_move_deadline_backward(client):
+    """A row created straight into Reaching Out gets an immediate baseline
+    apply_by_date from its own date_applied. Logging a contact backdated to
+    before that baseline -- with no other contacts yet -- must not pull the
+    deadline earlier than the baseline itself."""
+    create_resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = create_resp.get_json()["id"]
+    baseline = client.get("/api/applications").get_json()[0]
+    assert baseline["latest_outreach_date"] == "2026-09-28"
+    assert baseline["apply_by_date"] == "2026-10-03"
+
+    client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Backdated Contact", "date_sent": "2026-09-20",
+    })
+
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == "2026-09-28"
+    assert row["apply_by_date"] == "2026-10-03"
+
+
+def test_create_application_reaching_out_autofills_apply_by_date(client):
+    resp = client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == "2026-09-28"
+    assert row["apply_by_date"] == "2026-10-03"
+
+
+def test_create_application_non_reaching_out_leaves_apply_by_date_blank(client):
+    client.post("/api/applications", json={
+        "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Applied",
+    })
+    row = client.get("/api/applications").get_json()[0]
+    assert row["latest_outreach_date"] == ""
+    assert row["apply_by_date"] == ""
+
+
 def test_outreach_contact_defaults_date_to_today(client, monkeypatch):
     import app as app_module
     monkeypatch.setattr(app_module, "date", type("FixedDate", (), {

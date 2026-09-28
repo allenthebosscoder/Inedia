@@ -5,15 +5,17 @@ const TODAY = new Date().toLocaleDateString("en-CA");
 
 async function load() {
     const picks = await (await fetch("/api/picks")).json();
-    const priority = [], today = [], carried = [], applied = [];
+    const priority = [], today = [], carried = [], reachedOut = [], applied = [];
     for (const p of picks) {
-        // Once a priority pick is applied, it belongs in Applied today rather
-        // than remaining pinned in the action queue.
-        if (p.priority && p.status !== "applied") {
+        // Once a priority pick is actioned, it belongs in Reached Out/Applied
+        // today rather than remaining pinned in the action queue.
+        if (p.priority && p.status !== "applied" && p.status !== "reaching_out") {
             priority.push(p);
+        } else if (p.status === "reaching_out") {
+            // Only picks actioned *today* — older ones stay in the DB (still
+            // linked to their applications row) but drop off this view.
+            if ((p.updated_at || "").slice(0, 10) === TODAY) reachedOut.push(p);
         } else if (p.status === "applied") {
-            // Only picks applied *today* — older applied picks stay in the DB
-            // (still linked to their applications row) but drop off this view.
             if ((p.updated_at || "").slice(0, 10) === TODAY) applied.push(p);
         } else if (p.first_run_date < TODAY) {
             carried.push(p);
@@ -29,6 +31,8 @@ async function load() {
     moreWrap.hidden = today.length <= 15;
     renderInto(document.querySelector("#carried .pick-list"), carried, true);
     document.querySelector("#carried").hidden = carried.length === 0;
+    renderInto(document.querySelector("#reached-out .pick-list"), reachedOut, false, true);
+    document.querySelector("#reached-out").hidden = reachedOut.length === 0;
     renderInto(document.querySelector("#applied .pick-list"), applied, false, true);
     document.querySelector("#applied").hidden = applied.length === 0;
 }

@@ -227,9 +227,6 @@ select.status-select {
     text-align: center;
 }
 
-.reaching-out-col { display: none; }
-table.tab-reaching-out .reaching-out-col { display: table-cell; }
-
 .row-overdue { background-color: #fff7d6; }
 
 .contacts-list {

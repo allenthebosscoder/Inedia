@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import pytest
 from app import create_app
 
@@ -147,11 +149,13 @@ def test_outreach_creates_application_with_reaching_out_status(client):
     assert match["role"] == "Firmware Intern"
     assert match["status"] == "Reaching Out"
     assert match["outreach_contacts"] == "[]"
-    assert match["latest_outreach_date"] == ""
-    assert match["apply_by_date"] == ""
+    # The Reaching Out button *is* the outreach event -- Apply By is
+    # populated immediately, not left blank until a contact is logged.
+    assert match["latest_outreach_date"] == date.today().isoformat()
+    assert match["apply_by_date"] == (date.today() + timedelta(days=5)).isoformat()
 
     pick = client.get("/api/picks").get_json()[0]
-    assert pick["status"] == "applied" and pick["application_id"] == app_id
+    assert pick["status"] == "reaching_out" and pick["application_id"] == app_id
 
 
 def test_outreach_twice_is_409(client):
@@ -163,16 +167,38 @@ def test_outreach_twice_is_409(client):
 
 def test_outreach_after_apply_is_409(client):
     """A pick already actioned via /apply can't also be sent to /outreach --
-    daily_picks.status is 'applied' either way, so the existing guard covers
-    both directions."""
+    even though the two actions now write different daily_picks.status
+    values ('applied' vs 'reaching_out'), the guard checks for either."""
     client.post("/api/picks/bulk", json=_bulk_body())
     pid = client.get("/api/picks").get_json()[0]["id"]
     client.post(f"/api/picks/{pid}/apply")
     assert client.post(f"/api/picks/{pid}/outreach").status_code == 409
 
 
+def test_apply_after_outreach_is_409(client):
+    """The reverse direction: a pick already sent to Reaching Out can't
+    also be marked Applied via the Picks page -- further status changes
+    happen in the tracker instead."""
+    client.post("/api/picks/bulk", json=_bulk_body())
+    pid = client.get("/api/picks").get_json()[0]["id"]
+    client.post(f"/api/picks/{pid}/outreach")
+    assert client.post(f"/api/picks/{pid}/apply").status_code == 409
+
+
 def test_outreach_missing_pick_is_404(client):
     assert client.post("/api/picks/999/outreach").status_code == 404
+
+
+def test_get_picks_default_excludes_old_reaching_out_picks(client):
+    _insert_pick(client, job_key="old:1", status="reaching_out", updated_at="2020-01-01 00:00:00")
+    assert client.get("/api/picks").get_json() == []
+
+
+def test_get_picks_includes_reaching_out_today(client):
+    _insert_pick(client, job_key="today:1", status="reaching_out")  # updated_at defaults to now
+    picks = client.get("/api/picks").get_json()
+    assert len(picks) == 1
+    assert picks[0]["status"] == "reaching_out"
 
 
 def test_delete_removes_pick_and_marks_seen_deleted(client):

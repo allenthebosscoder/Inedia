@@ -112,14 +112,13 @@ function makeToggleCell(row, field) {
 
 function makeApplyByCell(row) {
     const td = document.createElement("td");
-    td.className = "reaching-out-col";
     td.textContent = row.apply_by_date || "";
     return td;
 }
 
 function makeContactsCell(row) {
     const td = document.createElement("td");
-    td.className = "reaching-out-col contacts-cell";
+    td.className = "contacts-cell";
 
     const contacts = row.outreach_contacts ? JSON.parse(row.outreach_contacts) : [];
     const list = document.createElement("ul");
@@ -240,8 +239,6 @@ document.querySelectorAll(".tab-button").forEach((button) => {
         document.querySelectorAll(".tab-button").forEach((b) => b.classList.remove("active"));
         button.classList.add("active");
         window.currentTab = button.dataset.tab;
-        document.getElementById("applications-table")
-            .classList.toggle("tab-reaching-out", window.currentTab === "reaching-out");
         fetchApplications();
     });
 });
