@@ -86,7 +86,7 @@ def create_app(db_path="tracker.db", seed=False):
 
         sortable_fields = {
             "id", "date_applied", "company", "role", "type", "status",
-            "referred", "reply_received", "created_at",
+            "referred", "reply_received", "created_at", "apply_by_date",
         }
         sort = request.args.get("sort", "date_applied")
         if sort not in sortable_fields:

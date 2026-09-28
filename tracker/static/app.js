@@ -39,7 +39,7 @@ function renderRows(rows) {
     body.innerHTML = "";
     for (const row of rows) {
         const tr = document.createElement("tr");
-        if (row.apply_by_date && row.apply_by_date < TODAY) {
+        if (row.status === "Reaching Out" && row.apply_by_date && row.apply_by_date < TODAY) {
             tr.classList.add("row-overdue");
         }
 

@@ -171,6 +171,46 @@ def test_list_applications_sort_by_referred(client):
     assert [r["referred"] for r in rows] == sorted([1, 0])
 
 
+def test_list_applications_sort_by_apply_by_date(client):
+    """Clicking the Apply By column header on the Reaching Out tab should
+    actually sort by that column, not silently fall back to date_applied.
+    date_applied and apply_by_date are deliberately in reversed order here
+    so a fallback to date_applied would produce the wrong result."""
+    later_date_applied_earlier_deadline = client.post("/api/applications", json={
+        "date_applied": "2026-09-20", "company": "DeadlineSoon", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    }).get_json()["id"]
+    earlier_date_applied_later_deadline = client.post("/api/applications", json={
+        "date_applied": "2026-09-01", "company": "DeadlineLater", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    }).get_json()["id"]
+    client.post(f"/api/applications/{later_date_applied_earlier_deadline}/outreach-contact", json={
+        "name": "A", "date_sent": "2026-09-01",
+    })
+    client.post(f"/api/applications/{earlier_date_applied_later_deadline}/outreach-contact", json={
+        "name": "B", "date_sent": "2026-09-20",
+    })
+
+    resp = client.get("/api/applications?sort=apply_by_date&dir=asc")
+    rows = resp.get_json()
+    assert [r["company"] for r in rows] == ["DeadlineSoon", "DeadlineLater"]
+
+
+def test_list_applications_filter_by_status_reaching_out(client):
+    client.post("/api/applications", json={
+        "date_applied": "2026-08-18", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Applied",
+    })
+    client.post("/api/applications", json={
+        "date_applied": "2026-08-18", "company": "Beta", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    resp = client.get("/api/applications?status=Reaching+Out")
+    rows = resp.get_json()
+    assert len(rows) == 1
+    assert rows[0]["company"] == "Beta"
+
+
 def test_paste_applications_inserts_valid_rows(client):
     text = "2026-08-18\tAcme\tSWE\tEntry\tApplied\tNo\tNo\tsome note"
     resp = client.post("/api/applications/paste", json={"text": text})
