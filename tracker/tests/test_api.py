@@ -668,6 +668,20 @@ def test_compute_stats_this_week_monday_boundary():
     assert stats["this_week"] == 2
 
 
+def test_compute_stats_today_and_this_week_exclude_reaching_out():
+    """Reaching Out rows aren't applications yet -- their date_applied is
+    just when the row was created, not when a job was applied to, so they
+    shouldn't inflate the today/this_week counters."""
+    today = date(2026, 9, 2)
+    rows = [
+        {"status": "Reaching Out", "date_applied": "2026-09-02"},
+        {"status": "Applied", "date_applied": "2026-09-02"},
+    ]
+    stats = compute_stats(rows, today=today)
+    assert stats["today"] == 1
+    assert stats["this_week"] == 1
+
+
 def test_compute_stats_skips_malformed_or_empty_dates():
     rows = [
         {"status": "Applied", "date_applied": ""},

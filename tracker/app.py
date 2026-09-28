@@ -47,6 +47,12 @@ def compute_stats(rows, today=None):
         elif status == "Rejected":
             rejected += 1
 
+        # Reaching Out rows aren't applications yet -- date_applied on them
+        # is just "row created", not "applied", so they don't belong in
+        # counters that mean "jobs applied to".
+        if status == "Reaching Out":
+            continue
+
         applied_on = _parse_date_applied(row["date_applied"])
         if applied_on is not None and monday <= applied_on <= sunday:
             this_week += 1
