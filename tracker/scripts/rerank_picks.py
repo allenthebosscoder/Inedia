@@ -71,9 +71,16 @@ def main(argv=None) -> int:
     # being KEPT under a different job_key must be cleaned up as
     # disposition='superseded', not a real deletion -- 'deleted' would
     # poison the shared dedup_key and take the survivor down too on the
-    # next rerank (recurring bug, 2026-09-16 through 2026-09-21).
-    superseded_keys = {f"{d['source']}:{d['external_id']}" for d in dropped
-                       if d["reason"] == "dedup:superseded" and d.get("source") and d.get("external_id")}
+    # next rerank (recurring bug, 2026-09-16 through 2026-09-21). The
+    # 2-day freshness prune has the same failure mode: it isn't a real
+    # user rejection either, so a re-seen posting of the same job (e.g.
+    # the identical role reappearing from a different source) must not
+    # get silently blocked forever (hit 2026-09-28: an aged-out Adobe
+    # jobright pick poisoned a fresh, high-ranked jobnotifier duplicate
+    # of the same posting on the very next rerank).
+    superseded_reasons = {f"{d['source']}:{d['external_id']}": "dedup-superseded" for d in dropped
+                          if d["reason"] == "dedup:superseded" and d.get("source") and d.get("external_id")}
+    superseded_reasons.update({p["job_key"]: "aged-out" for p in stale})
 
     print(f"{len(picks)} on page -> {len(ranked)} kept, {len(drop_rows)} removed "
           f"({len(stale)} aged-out, {dict(Counter(d['reason'] for d in dropped))})")
@@ -86,8 +93,9 @@ def main(argv=None) -> int:
         return 0
 
     for p in drop_rows:
-        if p["job_key"] in superseded_keys:
-            body = json.dumps({"disposition": "superseded", "drop_reason": "dedup-superseded"}).encode()
+        if p["job_key"] in superseded_reasons:
+            body = json.dumps({"disposition": "superseded",
+                                "drop_reason": superseded_reasons[p["job_key"]]}).encode()
             req = urllib.request.Request(
                 f"{args.api}/api/picks/{p['id']}", data=body,
                 headers={"Content-Type": "application/json"}, method="DELETE")
