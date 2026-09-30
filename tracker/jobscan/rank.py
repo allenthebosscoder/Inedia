@@ -19,7 +19,7 @@ _PAST_SUMMER_RX = re.compile(r"summer\s+(\d{4})", re.I)
 RELEVANT = re.compile(
     r"\b(fpga|firmware|embedded|verilog|vhdl|rtl|asic|soc|dsp|analog|photonic|"
     r"semiconductor|microcontroller|vlsi|dft|mems|pcb|electronics|hbm|dram|hardware)\b"
-    r"|signal process|radio frequency|physical design|ic design|design verification|"
+    r"|signal process|signal integrity|radio frequency|physical design|ic design|design verification|"
     r"design evaluation engineer|design for test|"
     r"electronic design|electronics design|electronic control|\belectrical\b|"
     r"application engineer|applications engineer|"
@@ -55,6 +55,7 @@ HARDWARE = re.compile(
     r"systems performance engineer|reliability engineer|"
     r"reliability testing|failure analysis|server platform|design for test|"
     r"power electronics|power system|controls eng|physical design|ic design|design verification|"
+    r"signal integrity|"
     r"\brf\b", re.I)
 
 # NOT a sponsorship blocklist (sponsorship is JD-text-only, checked

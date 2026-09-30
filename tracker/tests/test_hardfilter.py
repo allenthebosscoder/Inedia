@@ -60,6 +60,14 @@ def test_drops_no_sponsorship_form_field_and_indirect_phrasings():
         # Tanium (2026-09-11) -- "now and in the future" implies no future
         # sponsorship need even with no literal "sponsor" nearby.
         "Authorized to work in the U.S. now and in the future.",
+        # IBM (2026-09-29): "will not be providing" (gerund, with "be") slid
+        # past the old will-not-(offer|provide|sponsor)\b pattern, which only
+        # matched the bare infinitive; and "without a need for" slid past
+        # without-the-need-for, which only matched the literal word "the".
+        "IBM will not be providing visa sponsorship for this position now or "
+        "in the future. Therefore, in order to be considered for this "
+        "position, you must have the ability to work without a need for "
+        "current or future visa sponsorship.",
     ]:
         assert hardfilter(posting(desc=desc), today=TODAY) == "no-sponsorship", desc
 
