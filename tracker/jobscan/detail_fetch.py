@@ -411,3 +411,29 @@ def fetch_ats_detail(url: str, company: str = "") -> str | None:
         text, _posted, _labels = parser(d)
         return text or None
     return None
+
+
+# A handful of ATS pages render a cookie banner or nav chrome as the
+# extracted page text instead of the real JD (2026-09-26: SPX Technologies,
+# ESCO Automation, Karma Automotive, Amazon, Adobe), so the "first line" is
+# junk like "Skip to main content" -- trusting it as a title wrongly fails
+# RELEVANT and drops an otherwise-good role. Reject known boilerplate.
+_JUNK_TITLE_RX = re.compile(
+    r"^skip to\b|privacy policy|terms of use|cookies?\b", re.I)
+
+
+def role_from_real_jd(description: str, card_role: str) -> str:
+    """_assemble() above always puts the real ATS posting's own title as the
+    first line of the JD text it returns -- prefer that over an aggregator's
+    own card/email title, which is often a paraphrase, a reordering, or
+    (worse) missing a disqualifying suffix entirely (Chamberlain Group via
+    jobnotifier, 2026-09-30: card said "Software Engineer 1 Intern -
+    Middleware", the real posting said "Software Engineer 1, Middleware
+    (Intern Conversion)" -- the aggregator's paraphrase silently dropped the
+    "(Intern Conversion)" marker). Falls back to card_role when the
+    description is empty, its first line is blank, or the first line is
+    cookie/nav boilerplate rather than a real title."""
+    first_line = description.split("\n", 1)[0].strip()
+    if not first_line or _JUNK_TITLE_RX.search(first_line):
+        return card_role
+    return first_line

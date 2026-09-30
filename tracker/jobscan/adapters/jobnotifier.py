@@ -29,7 +29,9 @@ from jobscan.adapters.base import (
     JobPosting,
     ParseError,
 )
-from jobscan.detail_fetch import _UA, fetch_ats_detail, looks_blocked, posted_at_from_ats_text
+from jobscan.detail_fetch import (
+    _UA, fetch_ats_detail, looks_blocked, posted_at_from_ats_text, role_from_real_jd,
+)
 
 __all__ = ["JobnotifierAdapter", "BlockedError", "ParseError", "parse_jobs", "parse_detail"]
 
@@ -122,18 +124,27 @@ class JobnotifierAdapter:
         # page only when that doesn't pan out.
         api_text = fetch_ats_detail(card.url)
         if api_text and not looks_blocked(api_text):
-            return _posting(card, api_text)
+            return _posting(card, api_text, from_api=True)
         return parse_detail_via_goto(page, card)
 
 
-def _posting(card: JobCard, description: str) -> JobPosting:
+def _posting(card: JobCard, description: str, from_api: bool) -> JobPosting:
     # The jobnotifier card's timestamp is when *it* scraped the listing, not
     # when the job was posted -- prefer the real posted date the ATS API
     # reports (score.py's stale-posting penalty depends on it).
     posted = posted_at_from_ats_text(description) or card.posted_at
+    # detail_fetch._assemble() (the from_api path) always puts the real
+    # posting's own title as the JD's literal first line -- prefer that over
+    # jobnotifier's own card title, which is often a paraphrase and can drop
+    # a disqualifying suffix entirely (Chamberlain Group, 2026-09-30: card
+    # said "Software Engineer 1 Intern - Middleware", the real posting said
+    # "Software Engineer 1, Middleware (Intern Conversion)"). A raw browser
+    # body scrape (from_api=False) isn't run through _assemble() and its
+    # first line is whatever the page happens to render first, not a title.
+    role = role_from_real_jd(description, card.role) if from_api else card.role
     return JobPosting(
         source=card.source, external_id=card.external_id, url=card.url,
-        company=card.company, role=card.role, location=card.location,
+        company=card.company, role=role, location=card.location,
         salary_hint=card.salary_hint, posted_at=posted,
         description=description[:MAX_DESCRIPTION_CHARS],
         # my-job-notifier lists both internships and early-career / new-grad
@@ -146,13 +157,15 @@ def _posting(card: JobCard, description: str) -> JobPosting:
 
 def parse_detail(page, card: JobCard) -> JobPosting:
     description = _text(page.query_selector("body"))
+    from_api = False
     if looks_blocked(description):
         api_text = fetch_ats_detail(card.url)
         if api_text and not looks_blocked(api_text):
             description = api_text
+            from_api = True
         else:
             raise BlockedError(f"blocked:{urlsplit(card.url).netloc or card.url}")
-    return _posting(card, description)
+    return _posting(card, description, from_api=from_api)
 
 
 def parse_detail_via_goto(page, card: JobCard) -> JobPosting:

@@ -49,7 +49,8 @@ _CONVERSION_RX = re.compile(
     r"this\s+(?:role|posting|position|req\w*)\s+is\s+for\b[^.]{0,45}\bintern"
     r"|open\s+only\s+to\b[^.]{0,25}\b(?:current|our|returning)\b[^.]{0,15}intern"
     r"|for\s+(?:our\s+)?20\d\d\s+(?:summer\s+)?interns?\s+who\s+worked"
-    r"|for\s+(?:our\s+)?20\d\d\s+(?:summer\s+)?interns?\b[^.]{0,30}(?:convert|return|second\s+term)",
+    r"|for\s+(?:our\s+)?20\d\d\s+(?:summer\s+)?interns?\b[^.]{0,30}(?:convert|return|second\s+term)"
+    r"|\(\s*intern\s+conversion\s*\)",
     re.I)
 
 _SPONSOR = [re.compile(p, re.I) for p in criteria.SPONSORSHIP_NEGATIVE]

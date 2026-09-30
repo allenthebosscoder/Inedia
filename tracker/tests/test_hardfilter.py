@@ -619,6 +619,12 @@ def test_drops_return_offer_conversion_roles():
         "New net roles will open in September.",
         "Open only to current Walmart interns returning for a second term.",
         "This posting is for our 2026 summer interns converting to a fall term.",
+        # Chamberlain Group (2026-09-30): a bare "(Intern Conversion)" title
+        # marker -- Workday's own convention for "existing intern only, not
+        # open to new applicants" -- with no matching prose elsewhere in the
+        # JD for the existing prose-only patterns to catch.
+        "Software Engineer 1, Middleware (Intern Conversion)\nChamberlain "
+        "Group is a global leader in intelligent access.",
     ]:
         assert hardfilter(posting(desc=desc + " " * 200), today=TODAY) == "intern-conversion", desc
 
