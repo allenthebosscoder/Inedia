@@ -48,6 +48,16 @@ _RESTRICTED_Q_RX = re.compile(
     r"|(?:are\s+you\s+a\s+)?u\.?s\.?\s+citizen[^?]*\b(?:required|only)\b"
     r"|export\s+control[^?]*u\.?s\.?\s+person", re.I)
 
+# A campus-recruiting req reserved for one named school (OneImaging,
+# 2026-09-30: title said "(Miami Only)", and the Greenhouse questions
+# confirm it: "Are you currently attending or a recent graduate of The
+# University of Miami?"). Distinct from a generic "are you a student?"
+# screen -- this one names a specific institution.
+_SCHOOL_RESTRICTED_Q_RX = re.compile(
+    r"(?:currently\s+)?attend(?:ing)?\s+or\s+a\s+recent\s+graduate\s+of\s+(?:the\s+)?[A-Z]"
+    r"|(?:currently\s+)?(?:a\s+)?student\s+at\s+(?:the\s+)?[A-Z][\w&.'-]*\s+(?:university|college)",
+)
+
 
 def looks_blocked(text: str) -> bool:
     """True for a bot-wall block page, an ATS outage page, or near-empty
@@ -69,11 +79,15 @@ def looks_blocked(text: str) -> bool:
 
 
 def restricted_by_questions(labels: list[str]) -> str | None:
-    """A disqualifying reason ("clearance") if any application-question
-    label screens for clearance / citizens-only / export-control US-person."""
+    """A disqualifying reason if any application-question label screens for
+    clearance / citizens-only / export-control US-person ("clearance"), or
+    for attendance at one specific named school ("school-restricted")."""
     for lbl in labels:
-        if _RESTRICTED_Q_RX.search(lbl or ""):
+        lbl = lbl or ""
+        if _RESTRICTED_Q_RX.search(lbl):
             return "clearance"
+        if _SCHOOL_RESTRICTED_Q_RX.search(lbl):
+            return "school-restricted"
     return None
 
 

@@ -476,8 +476,9 @@ def hardfilter(posting: JobPosting, today: datetime.date | None = None) -> str |
         return "experience"
     if QUESTIONS_HEADER in text:
         labels = text.split(QUESTIONS_HEADER, 1)[1].splitlines()
-        if restricted_by_questions([l.strip() for l in labels if l.strip()]):
-            return "clearance"
+        q_reason = restricted_by_questions([l.strip() for l in labels if l.strip()])
+        if q_reason:
+            return q_reason
     loc_m = re.search(r"^Location:\s*(.+)$", text, re.M)
     if loc_m and not is_us_location(loc_m.group(1)):
         return "location"

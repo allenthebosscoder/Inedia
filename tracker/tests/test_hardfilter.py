@@ -569,6 +569,18 @@ def test_drops_when_application_questions_screen_for_clearance():
     assert hardfilter(posting(desc=desc), today=TODAY) == "clearance"
 
 
+def test_drops_when_application_questions_screen_for_a_specific_school():
+    from jobscan.detail_fetch import QUESTIONS_HEADER
+    # OneImaging (2026-09-30): the real title itself said "(Miami Only)",
+    # and the application questions confirm it's a campus-recruiting req
+    # reserved for one specific school, not a general new-grad opening.
+    desc = ("Full Stack Associate Software Engineer (Miami Only)\n\n"
+            f"{QUESTIONS_HEADER}\nResume/CV\nCover Letter\n"
+            "Are you currently attending or a recent graduate of The University "
+            "of Miami?\nAre you legally authorized to work in the United States?")
+    assert hardfilter(posting(desc=desc), today=TODAY) == "school-restricted"
+
+
 def test_standard_work_auth_questions_do_not_drop():
     from jobscan.detail_fetch import QUESTIONS_HEADER
     desc = ("Summer 2027 firmware internship building motor controllers.\n\n"
