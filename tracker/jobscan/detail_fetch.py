@@ -433,7 +433,10 @@ def fetch_ats_detail(url: str, company: str = "") -> str | None:
 # junk like "Skip to main content" -- trusting it as a title wrongly fails
 # RELEVANT and drops an otherwise-good role. Reject known boilerplate.
 _JUNK_TITLE_RX = re.compile(
-    r"^skip to\b|privacy policy|terms of use|cookies?\b", re.I)
+    r"^skip to\b|privacy policy|terms of use|cookies?\b"
+    # Eightfold/Cornerstone career-hub landing chrome (MACOM/Micron,
+    # 2026-09-30): a generic careers-page title, not a job title.
+    r"|^explore careers\b|^jobs$", re.I)
 
 
 def role_from_real_jd(description: str, card_role: str) -> str:

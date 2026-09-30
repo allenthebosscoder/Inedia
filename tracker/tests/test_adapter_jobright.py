@@ -37,6 +37,15 @@ def test_role_from_real_jd_rejects_cookie_and_nav_chrome_as_a_title():
         "By continuing to use and navigate this website, you are agreeing "
         "to the use of cookies.\nMore text.",
         "Terms of Use\nMore text.",
+        # MACOM/Micron via Eightfold/Cornerstone career hubs (2026-09-30):
+        # the "Original Job Post" link resolved to a generic career-site
+        # landing page rather than a cookie banner, so the junk first line
+        # was "Explore Careers at MACOM" or a bare "Jobs" -- same failure
+        # mode (a relevant real title, e.g. "Applications Engineering
+        # Intern" or "Intern - DRAM Customer Enablement Engineering", got
+        # wrongly overridden and then dropped as off-domain).
+        "Explore Careers at MACOM\nMore text.",
+        "Jobs\nChange the world through innovation\nMore text.",
     ]:
         assert _role_from_real_jd(junk, card_role="Firmware Engineer Intern") \
             == "Firmware Engineer Intern", junk
