@@ -405,12 +405,57 @@ _BACHELOR_EXPERIENCE_RX = re.compile(
     r"|bachelor'?s\s+(?:level\s+)?degree\s+(?:and|or)\s+(\d+)\+?\s*years?\s+(?:of\s+)?"
     r"(?:related\s+)?(?:work\s+)?experience", re.I)
 
+# A flat "N+ years of X experience" Minimum Qualification, unconnected to any
+# degree clause (Snap, 2026-09-30: "BS ... or equivalent years of experience
+# 1+ years of industry C++ development experience"). Requires the literal
+# "+" -- a company describing its own tenure ("we have 10 years of combined
+# experience") almost never writes it that way, so this alone tells a
+# candidate-facing bar apart from company-description prose.
+_BARE_EXPERIENCE_RX = re.compile(
+    r"(\d+)\+\s*years?\s+(?:of\s+)?[a-z][\w\s/+#.-]{0,40}?experience", re.I)
+
+
+_PREFERRED_HEADER_RX = re.compile(r"preferred\s+qualifications?", re.I)
+
 
 def _experience_dropped(text: str) -> bool:
-    m = _BACHELOR_EXPERIENCE_RX.search(text or "")
-    if not m:
-        return False
-    return int(m.group(1) or m.group(2)) >= 1
+    text = text or ""
+    m = _BACHELOR_EXPERIENCE_RX.search(text)
+    if m and int(m.group(1) or m.group(2)) >= 1:
+        return True
+    for m in _BARE_EXPERIENCE_RX.finditer(text):
+        if int(m.group(1)) < 1:
+            continue
+        # "5+ years of combined industry experience" describes the *team's*
+        # tenure, not a bar for the candidate -- "combined"/"collective"
+        # lands inside the match's own captured span, not the surrounding
+        # window, so it needs its own check.
+        if any(w in m.group(0).lower() for w in ("combined", "collective")):
+            continue
+        line_start = text.rfind("\n", 0, m.start()) + 1
+        nl_after = text.find("\n", m.end())
+        line_end = len(text) if nl_after == -1 else nl_after
+        window_end = min(m.end() + 60, line_end)
+        # A JD with no real line breaks (Workday's flattened body text) can
+        # run a later "Preferred Qualifications:" header right up against
+        # this match -- don't let that header rescue an unrelated Minimum
+        # Qualification (Snap, 2026-09-30). A genuine "Preferred: N+ years"
+        # still rescues via the *leading* half of the window, below.
+        hdr = _PREFERRED_HEADER_RX.search(text, m.end())
+        if hdr:
+            window_end = min(window_end, hdr.start())
+        # The leading half is deliberately tighter than the trailing half:
+        # long enough for "Preferred Qualifications: " or "(preferred)"
+        # immediately touching the number, but short enough that an
+        # unrelated, earlier clause's "or equivalent" (Snap: "BS ... or
+        # equivalent years of experience 1+ years of industry C++ ...")
+        # does not falsely rescue a real Minimum Qualification that follows.
+        lead_start = max(m.start() - 30, line_start)
+        window = text[lead_start:window_end].lower()
+        if any(neg in window for neg in criteria.PREFERRED_NEGATION):
+            continue
+        return True
+    return False
 
 
 def hardfilter(posting: JobPosting, today: datetime.date | None = None) -> str | None:

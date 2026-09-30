@@ -116,6 +116,25 @@ def test_drops_bachelors_tier_that_requires_prior_experience():
                                     "of combined industry experience." + " x" * 200)) is None
 
 
+def test_drops_bare_years_of_experience_requirement():
+    # Snap (2026-09-30): a flat "N+ years of X experience" Minimum
+    # Qualification, not tied to a degree clause at all -- the existing
+    # _BACHELOR_EXPERIENCE_RX only fires on "degree AND/OR N years", so this
+    # slid through as a New Grad-labeled role a fresh grad can't actually meet.
+    desc = ("Minimum Qualifications: BS in a technical field or equivalent "
+            "years of experience 1+ years of industry C++ development "
+            "experience Preferred Qualifications: Experience with modern C++")
+    assert hardfilter(posting(desc=desc + " " * 200)) == "experience"
+    # 0+ years means no prior experience needed -- fine
+    assert hardfilter(posting(desc="0+ years of experience required." + " x" * 200)) is None
+    # a company describing its own tenure, not a candidate requirement
+    assert hardfilter(posting(desc="Our team has 5+ years of combined industry "
+                                    "experience." + " x" * 200)) is None
+    # a *preferred* (not minimum) years-of-experience bar shouldn't disqualify
+    assert hardfilter(posting(desc="Preferred Qualifications: 3+ years of Python "
+                                    "experience." + " x" * 200)) is None
+
+
 def test_drops_grad_window_entirely_before_earliest_grad():
     # General Motors: wants someone who already graduated -- the earliest
     # possible grad date configured is May 2027, after this window ends.
