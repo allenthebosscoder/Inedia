@@ -637,6 +637,10 @@ def test_drops_return_offer_conversion_roles():
         # JD for the existing prose-only patterns to catch.
         "Software Engineer 1, Middleware (Intern Conversion)\nChamberlain "
         "Group is a global leader in intelligent access.",
+        # IBM (2026-10-01): the same "Intern Conversion" title marker, but
+        # colon-separated instead of parenthesized -- the existing pattern
+        # only matched the literal "(Intern Conversion)" form.
+        "2026 Intern Conversion : Hardware Engineer\nYorktown Heights, NY.",
     ]:
         assert hardfilter(posting(desc=desc + " " * 200), today=TODAY) == "intern-conversion", desc
 

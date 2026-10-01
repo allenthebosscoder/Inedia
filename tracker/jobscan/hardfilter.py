@@ -50,7 +50,10 @@ _CONVERSION_RX = re.compile(
     r"|open\s+only\s+to\b[^.]{0,25}\b(?:current|our|returning)\b[^.]{0,15}intern"
     r"|for\s+(?:our\s+)?20\d\d\s+(?:summer\s+)?interns?\s+who\s+worked"
     r"|for\s+(?:our\s+)?20\d\d\s+(?:summer\s+)?interns?\b[^.]{0,30}(?:convert|return|second\s+term)"
-    r"|\(\s*intern\s+conversion\s*\)",
+    # A bare "Intern Conversion" title marker, with or without parens
+    # (Chamberlain Group used "(Intern Conversion)"; IBM used "2026 Intern
+    # Conversion : Hardware Engineer" -- a colon, not parens).
+    r"|\bintern\s+conversion\b",
     re.I)
 
 _SPONSOR = [re.compile(p, re.I) for p in criteria.SPONSORSHIP_NEGATIVE]
