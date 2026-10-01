@@ -171,6 +171,20 @@ def test_grad_window_overlapping_earliest_grad_is_not_dropped():
                                     "August 2027." + " x" * 200)) is None
 
 
+def test_drops_bare_graduating_by_bound_before_earliest_grad():
+    # Applied Intuition (2026-10-01): "graduating by December 2026" is a
+    # single end-bound, not the "between X and Y" range _GRAD_WINDOW_RX
+    # requires, so it never matched even though it's just as disqualifying
+    # (December 2026 is before the May 2027 earliest grad).
+    assert hardfilter(posting(desc="BS/BA, MS, or PhD in Electrical Engineering "
+                                    "or a related degree. Strong fundamentals in "
+                                    "circuit design, graduating by December 2026."
+                                    + " x" * 200)) == "grad-window"
+    # a bound at or after the earliest grad date is fine
+    assert hardfilter(posting(desc="Graduating by May 2027 or later."
+                                    + " x" * 200)) is None
+
+
 def test_drops_title_level_grad_class_year_before_earliest_grad():
     # NVIDIA: the title alone names a graduating class a full year before
     # the earliest possible grad date configured (May 2027) -- the JD body
@@ -179,7 +193,13 @@ def test_drops_title_level_grad_class_year_before_earliest_grad():
     for role in ["ASIC Design Engineer - New College Grad 2026",
                  "Software Engineer, Hardware Tools and Methodology - New College Grad 2026",
                  "New Grad 2026 - Software Engineer",
-                 "Software Engineer (Class of 2026)"]:
+                 "Software Engineer (Class of 2026)",
+                 # Applied Intuition (2026-10-01): a month name between
+                 # "New Grad" and the year pushed the gap past the old
+                 # \D{0,10} budget ("New Grad (December 2026)" has 11 chars
+                 # of punctuation/month text in between), so it silently
+                 # never matched at all.
+                 "Hardware Integration Engineer - New Grad (December 2026)"]:
         assert hardfilter(posting(role=role, desc="Build great things. " * 20),
                           today=TODAY) == "grad-window", role
 

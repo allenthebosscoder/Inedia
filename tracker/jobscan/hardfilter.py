@@ -384,6 +384,11 @@ _GRAD_WINDOW_RX = re.compile(
     r"(?:degree\s+complet\w*|graduation)\s*(?:must\s+have\s+occurred\s+)?"
     r"between\s+" + _MONTH_RX + r"\s+(\d{4})\s+and\s+" + _MONTH_RX + r"\s+(\d{4})", re.I)
 
+# A single end-bound ("graduating by December 2026"), not the "between X
+# and Y" range above -- just as disqualifying when that bound is before the
+# earliest grad date (Applied Intuition, 2026-10-01).
+_GRAD_BY_RX = re.compile(r"graduat\w*\s+by\s+" + _MONTH_RX + r"\s+(\d{4})", re.I)
+
 
 # A title-only class-year marker ("New College Grad 2026", "Class of 2026")
 # names a graduating class directly -- no "degree completed between X and Y"
@@ -391,13 +396,19 @@ _GRAD_WINDOW_RX = re.compile(
 # restates it (NVIDIA, 2026-09-20). Treat the class year as ending in May of
 # that year, same as a plain undergrad spring graduation.
 _TITLE_GRAD_YEAR_RX = re.compile(
-    r"(?:college\s+grad|new\s+grad|class\s+of)\D{0,10}(20\d\d)", re.I)
+    r"(?:college\s+grad|new\s+grad|class\s+of)\D{0,20}(20\d\d)", re.I)
 
 
 def _grad_window_dropped(text: str) -> bool:
-    m = _GRAD_WINDOW_RX.search(text or "")
+    text = text or ""
+    m = _GRAD_WINDOW_RX.search(text)
     if m:
         end_month, end_year = _MONTHS[m.group(3).lower()], int(m.group(4))
+        if (end_year, end_month) < _ALLEN_EARLIEST_GRAD:
+            return True
+    m = _GRAD_BY_RX.search(text)
+    if m:
+        end_month, end_year = _MONTHS[m.group(1).lower()], int(m.group(2))
         if (end_year, end_month) < _ALLEN_EARLIEST_GRAD:
             return True
     return False
