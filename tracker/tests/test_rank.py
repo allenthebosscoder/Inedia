@@ -197,10 +197,32 @@ def test_relevant_matches_hardware_and_systems_titles():
               "Intern - Systems Performance Engineer",  # Micron, 2026-09-24
               "Intern - Signal Integrity",  # Micron, 2026-09-29 -- a distinct EE discipline from "signal process[ing]"
               "Summer 2027 - Probe Test Engineer Intern",  # onsemi, 2026-10-01 -- wafer-probe test, not "lab"/"product" test engineer
-              "Summer 2027 - Test Development Engineering Internship"]:  # onsemi, 2026-10-01
+              "Summer 2027 - Test Development Engineering Internship",  # onsemi, 2026-10-01
+              # onsemi, 2026-10-01 -- Test confirmed test/validation/
+              # systems/manufacturing/power-electronics internships are in
+              # scope (distinct from the fab/chemical-process side -- e.g.
+              # lithography, metrology, wet process -- which stays out).
+              "Summer 2027 - Test Engineer Intern",
+              "Summer 2027 - Validation Engineering Intern",
+              "Summer 2027 - Integration Engineer Intern",
+              "Summer 2027 - Manufacturing Engineer Intern",
+              "Summer 2027 - Technology Development LV-MV Internship"]:
         assert RELEVANT.search(t), t
     # but a customer-facing sales title with the same words still drops
     assert OFF_DOMAIN.search("Sales Application Engineer")
+
+
+def test_relevant_excludes_fab_process_engineering_titles():
+    # onsemi, 2026-10-01 -- Test explicitly chose to keep these out: the
+    # chemical/materials-process side of semiconductor fab work, distinct
+    # from the test/validation/systems group confirmed relevant above.
+    for t in ["Summer 2027 - Lithography Engineering Intern",
+              "Summer 2027 - Metrology Engineering Intern",
+              "Summer 2027 - Wet Process Engineering Intern",
+              "Summer 2027 - Thin Films, Implant & Diffusion Process Engineering Intern",
+              "Summer 2027 - Defect Inspection Intern",
+              "Summer 2027 - Module Engineer Intern"]:
+        assert not RELEVANT.search(t), t
 
 
 def test_drops_co_op_titles_internships_only():
