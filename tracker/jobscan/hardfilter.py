@@ -56,6 +56,19 @@ _CONVERSION_RX = re.compile(
     r"|\bintern\s+conversion\b",
     re.I)
 
+# A role scoped to high schoolers, not college students (Stripe, 2026-10-01:
+# "High School Fellowship, Software Engineering" -- the title alone reads
+# like a normal SWE intern and matches RELEVANT fine; the JD is what makes
+# it ineligible). Requires "high school" paired with a program/eligibility
+# word nearby, not just any mention (a company's separate high-school
+# outreach program, mentioned in passing, must not false-positive).
+_HIGH_SCHOOL_RX = re.compile(
+    r"high\s+school\s+(?:fellowship|internship|intern|program)\b"
+    r"|(?:this\s+(?:role|fellowship|internship|position)\s+is\s+)?(?:only\s+)?"
+    r"(?:intended\s+for|open\s+to|for)\b[^.]{0,30}\bhigh\s+school\s+students?"
+    r"|(?:must\s+(?:currently\s+)?be|currently)\s+enrolled\s+in\s+high\s+school",
+    re.I)
+
 _SPONSOR = [re.compile(p, re.I) for p in criteria.SPONSORSHIP_NEGATIVE]
 _CLEAR = [re.compile(p, re.I) for p in criteria.CLEARANCE_NEGATIVE]
 _DEGREE = [re.compile(p, re.I) for p in criteria.DEGREE_NEGATIVE]
@@ -489,6 +502,8 @@ def hardfilter(posting: JobPosting, today: datetime.date | None = None) -> str |
         return "location"
     if _CONVERSION_RX.search(text):
         return "intern-conversion"
+    if _HIGH_SCHOOL_RX.search(text):
+        return "high-school"
     if _LOCAL_ONLY_RX.search(text):
         return "local-only"
     if _part_time_dropped(text):

@@ -135,6 +135,26 @@ def test_drops_bare_years_of_experience_requirement():
                                     "experience." + " x" * 200)) is None
 
 
+def test_drops_high_school_only_roles():
+    # Stripe (2026-10-01): "High School Fellowship, Software Engineering" --
+    # the title alone doesn't say "intern" oddly enough it reads as a normal
+    # SWE intern role and RELEVANT matches fine, but the JD is explicit that
+    # Test (a college student) isn't eligible at all.
+    for desc in [
+        "High School Internship, Software Engineering (Summer 2027)\n"
+        "This role is intended for current high school students "
+        "graduating in 2027 or later.",
+        "This fellowship is only open to high school students.",
+        "Applicants must currently be enrolled in high school.",
+    ]:
+        assert hardfilter(posting(desc=desc + " " * 200)) == "high-school", desc
+    # a company merely mentioning high school outreach elsewhere must not
+    # false-positive a real college-eligible posting
+    assert hardfilter(posting(desc="Software Engineer Intern. We also run a "
+                                    "separate outreach program for local high "
+                                    "schools." + " x" * 200)) is None
+
+
 def test_drops_grad_window_entirely_before_earliest_grad():
     # General Motors: wants someone who already graduated -- the earliest
     # possible grad date configured is May 2027, after this window ends.
