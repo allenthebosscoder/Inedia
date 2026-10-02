@@ -1,9 +1,11 @@
 import json
 from datetime import date, datetime, timedelta
+from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, render_template, request
 
 from db import init_db, get_db
+from contacts import CATEGORIES, STATUSES, normalize_profile_url
 from seed import run_seed
 from profile_data import build_profile
 from jobscan.adapters.base import dedup_key
@@ -67,13 +69,49 @@ def _apply_by_date(latest_outreach_date: str) -> str:
     return (datetime.strptime(latest_outreach_date, "%Y-%m-%d").date() + timedelta(days=5)).isoformat()
 
 
+def _log_outreach_contact(conn, app_id, name, date_sent) -> bool:
+    """Append a contact to an application's outreach log and recompute the
+    apply-by deadline. The ONLY writer of latest_outreach_date/apply_by_date
+    for contacts. Returns False if the application doesn't exist. Does not
+    commit."""
+    existing = conn.execute(
+        "SELECT status, outreach_contacts, latest_outreach_date FROM applications WHERE id = ?",
+        (app_id,),
+    ).fetchone()
+    if existing is None:
+        return False
+
+    contacts = json.loads(existing["outreach_contacts"] or "[]")
+    contacts.append({"name": name, "date_sent": date_sent})
+
+    # A row created straight into Reaching Out already has a baseline
+    # latest_outreach_date (its own creation date) -- a backdated
+    # contact must not pull the deadline earlier than that baseline.
+    candidates = [c["date_sent"] for c in contacts]
+    if existing["latest_outreach_date"]:
+        candidates.append(existing["latest_outreach_date"])
+    latest = max(candidates)
+    apply_by = _apply_by_date(latest) if existing["status"] == "Reaching Out" else ""
+
+    conn.execute(
+        """UPDATE applications
+           SET outreach_contacts = ?, latest_outreach_date = ?, apply_by_date = ?,
+               updated_at = datetime('now')
+           WHERE id = ?""",
+        (json.dumps(contacts), latest, apply_by, app_id),
+    )
+    return True
+
+
 def _cross_origin_request() -> bool:
     """True if the request carries an Origin header pointing somewhere other
     than this same local dev server -- a cross-origin page's fetch() would
     still send one even for a same-site-cookie-less POST like these."""
     origin = request.headers.get("Origin")
-    return bool(origin) and not (origin.startswith("http://localhost")
-                                 or origin.startswith("http://127.0.0.1"))
+    if not origin:
+        return False
+    parts = urlsplit(origin)
+    return not (parts.scheme == "http" and parts.hostname in ("localhost", "127.0.0.1"))
 
 
 def create_app(db_path="tracker.db", seed=False):
@@ -563,36 +601,138 @@ def create_app(db_path="tracker.db", seed=False):
     def add_outreach_contact(app_id):
         data = request.get_json(force=True) or {}
         conn = get_db(app.config["DATABASE"])
-        existing = conn.execute(
-            "SELECT outreach_contacts, latest_outreach_date FROM applications WHERE id = ?", (app_id,)
-        ).fetchone()
-        if existing is None:
+        ok = _log_outreach_contact(
+            conn, app_id, data.get("name", ""),
+            data.get("date_sent") or date.today().isoformat(),
+        )
+        if not ok:
             conn.close()
             return jsonify({"error": "not found"}), 404
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True})
 
-        contacts = json.loads(existing["outreach_contacts"] or "[]")
-        date_sent = data.get("date_sent") or date.today().isoformat()
-        contacts.append({"name": data.get("name", ""), "date_sent": date_sent})
+    def _reaching_out_app_id(conn, company):
+        row = conn.execute(
+            "SELECT id FROM applications WHERE lower(company) = lower(?) "
+            "AND status = 'Reaching Out' ORDER BY id DESC LIMIT 1",
+            (company,),
+        ).fetchone()
+        return row["id"] if row else None
 
-        # A row created straight into Reaching Out already has a baseline
-        # latest_outreach_date (its own creation date) -- a backdated
-        # contact must not pull the deadline earlier than that baseline.
-        candidates = [c["date_sent"] for c in contacts]
-        if existing["latest_outreach_date"]:
-            candidates.append(existing["latest_outreach_date"])
-        latest = max(candidates)
-        apply_by = _apply_by_date(latest)
+    @app.route("/api/contacts", methods=["GET"])
+    def list_contacts():
+        conn = get_db(app.config["DATABASE"])
+        query = "SELECT * FROM contacts WHERE 1=1"
+        params = []
+        if request.args.get("company"):
+            query += " AND lower(company) = lower(?)"
+            params.append(request.args["company"])
+        if request.args.get("status"):
+            query += " AND status = ?"
+            params.append(request.args["status"])
+        if request.args.get("application_id"):
+            query += " AND application_id = ?"
+            params.append(request.args["application_id"])
+        query += " ORDER BY CASE category WHEN 'duke' THEN 0 WHEN 'engineer' THEN 1 ELSE 2 END, id"
+        rows = [dict(r) for r in conn.execute(query, params).fetchall()]
+        conn.close()
+        return jsonify(rows)
 
+    @app.route("/api/contacts/bulk", methods=["POST"])
+    def bulk_contacts():
+        if _cross_origin_request():
+            return jsonify({"error": "cross-origin request rejected"}), 403
+        data = request.get_json(force=True) or {}
+        company = (data.get("company") or "").strip()
+        items = data.get("contacts")
+        if not company or not isinstance(items, list):
+            return jsonify({"error": "company and contacts[] are required"}), 400
+
+        cleaned = []
+        for item in items:
+            if not isinstance(item, dict):
+                return jsonify({"error": f"invalid contact: {item!r}"}), 400
+            url = normalize_profile_url(item.get("profile_url"))
+            name = (item.get("name") or "").strip()
+            category = item.get("category", "engineer")
+            if not url or not name or category not in CATEGORIES:
+                return jsonify({"error": f"invalid contact: {item!r}"}), 400
+            cleaned.append((name, (item.get("title") or "").strip(), url, category))
+
+        conn = get_db(app.config["DATABASE"])
+        app_id = _reaching_out_app_id(conn, company)
+        inserted = 0
+        for name, title, url, category in cleaned:
+            cur = conn.execute(
+                """INSERT OR IGNORE INTO contacts
+                   (company, application_id, name, title, profile_url, category)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (company, app_id, name, title, url, category),
+            )
+            inserted += cur.rowcount
+        if app_id is not None:
+            conn.execute(
+                "UPDATE contacts SET application_id = ? "
+                "WHERE lower(company) = lower(?) AND application_id IS NULL",
+                (app_id, company),
+            )
+        conn.commit()
+        conn.close()
+        return jsonify({"inserted": inserted, "skipped": len(cleaned) - inserted})
+
+    @app.route("/api/contacts/<int:contact_id>", methods=["PATCH"])
+    def update_contact(contact_id):
+        if _cross_origin_request():
+            return jsonify({"error": "cross-origin request rejected"}), 403
+        data = request.get_json(force=True) or {}
+        allowed = {"draft", "status", "reply_text"}
+        unknown = set(data) - allowed
+        if unknown or not data:
+            return jsonify({"error": f"unknown or empty fields: {sorted(unknown)}"}), 400
+        if "status" in data:
+            if data["status"] not in STATUSES:
+                return jsonify({"error": f"invalid status: {data['status']}"}), 400
+            if data["status"] == "sent":
+                return jsonify({"error": "use POST /api/contacts/<id>/sent"}), 400
+        conn = get_db(app.config["DATABASE"])
+        if conn.execute("SELECT 1 FROM contacts WHERE id = ?", (contact_id,)).fetchone() is None:
+            conn.close()
+            return jsonify({"error": "not found"}), 404
+        set_clause = ", ".join(f"{f} = ?" for f in data)
         conn.execute(
-            """UPDATE applications
-               SET outreach_contacts = ?, latest_outreach_date = ?, apply_by_date = ?,
-                   updated_at = datetime('now')
-               WHERE id = ?""",
-            (json.dumps(contacts), latest, apply_by, app_id),
+            f"UPDATE contacts SET {set_clause}, updated_at = datetime('now') WHERE id = ?",
+            list(data.values()) + [contact_id],
         )
         conn.commit()
         conn.close()
         return jsonify({"ok": True})
+
+    @app.route("/api/contacts/<int:contact_id>/sent", methods=["POST"])
+    def mark_contact_sent(contact_id):
+        if _cross_origin_request():
+            return jsonify({"error": "cross-origin request rejected"}), 403
+        conn = get_db(app.config["DATABASE"])
+        row = conn.execute("SELECT * FROM contacts WHERE id = ?", (contact_id,)).fetchone()
+        if row is None:
+            conn.close()
+            return jsonify({"error": "not found"}), 404
+        if row["status"] in ("sent", "replied"):
+            conn.close()
+            return jsonify({"ok": True, "logged": False})
+
+        app_id = row["application_id"] or _reaching_out_app_id(conn, row["company"])
+        logged = False
+        if app_id is not None:
+            logged = _log_outreach_contact(conn, app_id, row["name"], date.today().isoformat())
+        conn.execute(
+            "UPDATE contacts SET status = 'sent', application_id = COALESCE(application_id, ?), "
+            "updated_at = datetime('now') WHERE id = ?",
+            (app_id, contact_id),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "logged": logged})
 
     @app.route("/api/applications/<int:app_id>", methods=["DELETE"])
     def delete_application(app_id):

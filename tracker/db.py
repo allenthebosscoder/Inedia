@@ -45,6 +45,23 @@ CREATE TABLE IF NOT EXISTS reminders (
     FOREIGN KEY (application_id) REFERENCES applications(id)
 );
 
+CREATE TABLE IF NOT EXISTS contacts (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    company         TEXT NOT NULL COLLATE NOCASE,
+    application_id  INTEGER,
+    name            TEXT NOT NULL,
+    title           TEXT DEFAULT '',
+    profile_url     TEXT NOT NULL,
+    category        TEXT NOT NULL DEFAULT 'engineer',
+    draft           TEXT DEFAULT '',
+    status          TEXT NOT NULL DEFAULT 'found',
+    reply_text      TEXT DEFAULT '',
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (company, profile_url),
+    FOREIGN KEY (application_id) REFERENCES applications(id)
+);
+
 CREATE TABLE IF NOT EXISTS daily_picks (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     job_key         TEXT NOT NULL UNIQUE,

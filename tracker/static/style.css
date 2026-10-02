@@ -294,3 +294,11 @@ select.status-select {
     margin-right: 0.35rem;
     color: var(--text-muted);
 }
+
+.contacts-panel-row td { background: #fafbfc; padding: 0.5rem 0.75rem; }
+.contact-card { margin: 0 0 0.75rem 0; }
+.contact-category { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
+.contact-title { color: var(--text-muted); font-size: 0.85rem; }
+.contact-draft { display: block; width: 100%; margin: 0.35rem 0; font: inherit; }
+.contact-status { margin-left: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
+.apply-ok { color: #1a7f37; font-weight: 600; }

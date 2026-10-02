@@ -305,3 +305,29 @@ def test_init_db_new_tables_idempotent(tmp_path):
     n = conn.execute("SELECT COUNT(*) AS c FROM seen_jobs").fetchone()["c"]
     conn.close()
     assert n == 0
+
+
+def test_init_db_creates_contacts_table(tmp_path):
+    db_path = str(tmp_path / "test.db")
+    init_db(db_path)
+    conn = get_db(db_path)
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(contacts)").fetchall()}
+    conn.close()
+    assert columns == {
+        "id", "company", "application_id", "name", "title", "profile_url",
+        "category", "draft", "status", "reply_text", "created_at", "updated_at",
+    }
+
+
+def test_contacts_unique_per_company_case_insensitive(tmp_path):
+    import sqlite3
+    import pytest
+    db_path = str(tmp_path / "test.db")
+    init_db(db_path)
+    conn = get_db(db_path)
+    sql = "INSERT INTO contacts (company, name, profile_url) VALUES (?, 'A', ?)"
+    conn.execute(sql, ("Acme", "https://www.linkedin.com/in/a"))
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(sql, ("ACME", "https://www.linkedin.com/in/a"))
+    conn.execute(sql, ("Other", "https://www.linkedin.com/in/a"))  # different company is fine
+    conn.close()

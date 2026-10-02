@@ -17,6 +17,24 @@ async function fetchApplications() {
     if (tab === "applying") {
         rows = rows.filter((row) => row.status !== "Rejected" && row.status !== "Reaching Out");
     }
+    window.contactsByApp = {};
+    if (tab === "reaching-out") {
+        const cResp = await fetch("/api/contacts");
+        if (cResp.ok) {
+            const appIdByCompany = {};
+            for (const r of rows) {
+                if (r.status === "Reaching Out") appIdByCompany[r.company.toLowerCase()] = r.id;
+            }
+            for (const c of await cResp.json()) {
+                // Contacts found before their role reached Reaching Out have no
+                // application_id yet; attach them by company (the Sent route
+                // links them server-side the same way).
+                const appId = c.application_id ?? appIdByCompany[c.company.toLowerCase()];
+                if (appId == null) continue;
+                (window.contactsByApp[appId] ||= []).push(c);
+            }
+        }
+    }
     renderRows(rows);
     fetchStats();
 }
@@ -57,6 +75,8 @@ function renderRows(rows) {
         tr.appendChild(makeDeleteCell(row));
 
         body.appendChild(tr);
+        const panel = window.currentTab === "reaching-out" ? makeContactsPanelRow(row) : null;
+        if (panel) body.appendChild(panel);
     }
 }
 
@@ -112,8 +132,86 @@ function makeToggleCell(row, field) {
 
 function makeApplyByCell(row) {
     const td = document.createElement("td");
-    td.textContent = row.apply_by_date || "";
+    if (row.status !== "Reaching Out") return td;
+    const contacts = (window.contactsByApp || {})[row.id] || [];
+    if (contacts.some((c) => c.status === "replied")) {
+        td.textContent = "Reply received - OK to apply";
+        td.classList.add("apply-ok");
+    } else {
+        td.textContent = row.apply_by_date || "";
+    }
     return td;
+}
+
+function makeContactsPanelRow(row) {
+    const contacts = (window.contactsByApp || {})[row.id] || [];
+    if (!contacts.length) return null;
+    const tr = document.createElement("tr");
+    tr.className = "contacts-panel-row";
+    const td = document.createElement("td");
+    td.colSpan = document.querySelectorAll("thead th:not([hidden])").length;
+    for (const c of contacts) td.appendChild(makeContactCard(c));
+    tr.appendChild(td);
+    return tr;
+}
+
+function makeContactCard(c) {
+    const card = document.createElement("div");
+    card.className = "contact-card";
+
+    const head = document.createElement("div");
+    const link = document.createElement("a");
+    link.className = "contact-name";
+    link.href = c.profile_url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = c.name;
+    const cat = document.createElement("span");
+    cat.className = "contact-category";
+    cat.textContent = c.category;
+    const title = document.createElement("span");
+    title.className = "contact-title";
+    title.textContent = c.title;
+    head.append(link, " ", cat, " ", title);
+    card.appendChild(head);
+
+    const draft = document.createElement("textarea");
+    draft.className = "contact-draft";
+    draft.readOnly = true;
+    draft.rows = 4;
+    draft.value = c.draft || "";
+    card.appendChild(draft);
+
+    const copy = document.createElement("button");
+    copy.textContent = "Copy";
+    copy.dataset.act = "copy";
+    copy.addEventListener("click", async () => {
+        try {
+            await navigator.clipboard.writeText(draft.value);
+            copy.textContent = "Copied";
+        } catch (e) {
+            draft.select();
+        }
+    });
+    card.appendChild(copy);
+
+    if (c.status === "sent" || c.status === "replied") {
+        const label = document.createElement("span");
+        label.className = "contact-status";
+        label.textContent = c.status === "replied" ? `Replied: ${c.reply_text}` : "Sent";
+        card.appendChild(label);
+    } else {
+        const sent = document.createElement("button");
+        sent.textContent = "Sent";
+        sent.dataset.act = "sent";
+        sent.addEventListener("click", async () => {
+            const resp = await fetch(`/api/contacts/${c.id}/sent`, { method: "POST" });
+            if (!resp.ok) { alert("Failed to mark sent"); return; }
+            fetchApplications();
+        });
+        card.appendChild(sent);
+    }
+    return card;
 }
 
 function makeContactsCell(row) {
