@@ -47,3 +47,27 @@ def test_main_dry_run_patches_nothing(monkeypatch):
     assert patched == []
     assert cr.main([]) == 0
     assert patched == [("http://localhost:8080", 1, "yes")]
+
+
+def test_read_inbox_raises_blocked_when_wall_appears_during_wait(monkeypatch):
+    import contextlib
+    import pytest
+
+    class Page:
+        url = "https://www.linkedin.com/messaging/"
+
+        def goto(self, *a, **k):
+            pass
+
+        def wait_for_selector(self, *a, **k):
+            self.url = "https://www.linkedin.com/login"  # late redirect
+            raise TimeoutError("no conversations")
+
+    @contextlib.contextmanager
+    def fake_launch(headless=False):
+        yield None, Page()
+
+    monkeypatch.setattr(cr, "launch", fake_launch)
+    monkeypatch.setattr(cr, "pace", lambda *a, **k: None)
+    with pytest.raises(cr.LinkedInBlocked):
+        cr.read_inbox()

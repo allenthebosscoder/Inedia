@@ -134,3 +134,15 @@ def test_existing_outreach_contact_endpoint_still_works(client):
     resp = client.post(f"/api/applications/{app_id}/outreach-contact", json={"name": "Bob"})
     assert resp.status_code == 200
     assert client.post("/api/applications/999/outreach-contact", json={"name": "x"}).status_code == 404
+
+
+def test_cross_origin_check_is_exact_host_not_prefix(client):
+    for origin in ("http://localhost.attacker.com", "http://127.0.0.1.evil.example",
+                   "http://localhostevil.com"):
+        resp = client.post("/api/contacts/bulk", json={"company": "A", "contacts": []},
+                           headers={"Origin": origin})
+        assert resp.status_code == 403, origin
+    for origin in ("http://localhost:8080", "http://127.0.0.1:5000", "http://localhost"):
+        resp = client.post("/api/contacts/bulk", json={"company": "A", "contacts": []},
+                           headers={"Origin": origin})
+        assert resp.status_code == 200, origin

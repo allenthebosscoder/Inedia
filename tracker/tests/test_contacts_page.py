@@ -71,3 +71,20 @@ def test_reply_received_shows_ok_to_apply(live_server, chrome_page):
     chrome_page.click('[data-tab="reaching-out"]')
     chrome_page.wait_for_selector(".contacts-panel-row")
     assert "Reply received" in chrome_page.inner_text("#applications-body")
+
+
+@pytest.mark.live
+def test_contact_found_before_application_still_shows_in_panel(live_server, chrome_page):
+    base, app = live_server
+    c = app.test_client()
+    c.post("/api/contacts/bulk", json={"company": "Acme", "contacts": [
+        {"name": "Pat Lee", "title": "Engineer at Acme", "category": "duke",
+         "profile_url": "https://www.linkedin.com/in/pat-lee"}]})
+    c.post("/api/applications", json={
+        "date_applied": "2026-10-02", "company": "acme", "role": "FW Intern",
+        "type": "Intern", "status": "Reaching Out"})
+    chrome_page.goto(base)
+    chrome_page.click('[data-tab="reaching-out"]')
+    chrome_page.wait_for_selector(".contacts-panel-row .contact-card", timeout=5000)
+    chrome_page.click(".contact-card [data-act='sent']")
+    chrome_page.wait_for_selector(".contact-card .contact-status", timeout=5000)

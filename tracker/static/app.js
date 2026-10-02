@@ -21,9 +21,17 @@ async function fetchApplications() {
     if (tab === "reaching-out") {
         const cResp = await fetch("/api/contacts");
         if (cResp.ok) {
+            const appIdByCompany = {};
+            for (const r of rows) {
+                if (r.status === "Reaching Out") appIdByCompany[r.company.toLowerCase()] = r.id;
+            }
             for (const c of await cResp.json()) {
-                if (c.application_id == null) continue;
-                (window.contactsByApp[c.application_id] ||= []).push(c);
+                // Contacts found before their role reached Reaching Out have no
+                // application_id yet; attach them by company (the Sent route
+                // links them server-side the same way).
+                const appId = c.application_id ?? appIdByCompany[c.company.toLowerCase()];
+                if (appId == null) continue;
+                (window.contactsByApp[appId] ||= []).push(c);
             }
         }
     }

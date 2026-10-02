@@ -1,5 +1,6 @@
 import json
 from datetime import date, datetime, timedelta
+from urllib.parse import urlsplit
 
 from flask import Flask, jsonify, render_template, request
 
@@ -107,8 +108,10 @@ def _cross_origin_request() -> bool:
     than this same local dev server -- a cross-origin page's fetch() would
     still send one even for a same-site-cookie-less POST like these."""
     origin = request.headers.get("Origin")
-    return bool(origin) and not (origin.startswith("http://localhost")
-                                 or origin.startswith("http://127.0.0.1"))
+    if not origin:
+        return False
+    parts = urlsplit(origin)
+    return not (parts.scheme == "http" and parts.hostname in ("localhost", "127.0.0.1"))
 
 
 def create_app(db_path="tracker.db", seed=False):

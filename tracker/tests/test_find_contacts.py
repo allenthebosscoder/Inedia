@@ -88,3 +88,40 @@ def test_main_exits_2_and_posts_nothing_when_blocked(monkeypatch):
     assert fc.main(["Acme", "--dry-run"]) == 2
     assert fc.main(["Acme"]) == 2
     assert posted == []
+
+
+def test_collect_matches_company_on_word_boundaries():
+    results = {"engineer": [
+        _p("Ann", "Engineer at Arm"),
+        _p("Bob", "Sergeant, US Army"),
+        _p("Cy", "Pharmacist at Farm Rx"),
+        _p("Di", "Engineer, Arm Ltd."),
+    ]}
+    assert [c["name"] for c in fc.collect(results, "Arm", 15)] == ["Ann", "Di"]
+
+
+def test_search_all_raises_blocked_when_wall_appears_during_wait(monkeypatch):
+    import contextlib
+
+    class Page:
+        url = "https://www.linkedin.com/search/results/people/?keywords=x"
+
+        gotos = 0
+
+        def goto(self, *a, **k):
+            Page.gotos += 1
+
+        def wait_for_selector(self, *a, **k):
+            self.url = "https://www.linkedin.com/checkpoint/challenge/abc"  # late redirect
+            raise TimeoutError("no results")
+
+    @contextlib.contextmanager
+    def fake_launch(headless=False):
+        yield None, Page()
+
+    monkeypatch.setattr(fc, "launch", fake_launch)
+    monkeypatch.setattr(fc, "pace", lambda *a, **k: None)
+    import pytest
+    with pytest.raises(fc.LinkedInBlocked):
+        fc.search_all("Acme", "engineer")
+    assert Page.gotos == 1   # stopped at once; never navigated on a challenged session

@@ -10,6 +10,7 @@ shows a login wall or checkpoint. Requires scripts/linkedin_login.py once.
 """
 import argparse
 import json
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -42,11 +43,11 @@ def collect(results_by_category: dict, company: str, max_total: int) -> list[dic
     """Merge per-search people into one capped, deduped, categorized list.
     Drops anyone whose card text never mentions the company (LinkedIn keyword
     search is fuzzy). A recruiter-looking title always wins the category."""
-    needle = company.casefold()
+    needle = re.compile(r"(?<!\w)" + re.escape(company) + r"(?!\w)", re.I)
     seen, out = set(), []
     for category in CATEGORY_ORDER:
         for person in results_by_category.get(category, [])[:PER_SEARCH_CAP]:
-            if person["profile_url"] in seen or needle not in person["blob"].casefold():
+            if person["profile_url"] in seen or not needle.search(person["blob"]):
                 continue
             seen.add(person["profile_url"])
             is_recruiter = any(w in person["title"].casefold() for w in RECRUITER_WORDS)
@@ -76,11 +77,13 @@ def search_all(company: str, role_keywords: str, save_html: str | None = None) -
             try:
                 page.wait_for_selector('a[href*="/in/"]', timeout=15000)
             except Exception:
+                check_not_blocked(page)  # a late wall looks like "no results"
                 results[category] = []   # zero results is normal, not an error
                 pace()
                 continue
             page.mouse.wheel(0, 1200)    # one scroll to load lazy cards
             pace(1.0, 2.0)
+            check_not_blocked(page)
             if save_html:
                 Path(save_html).mkdir(parents=True, exist_ok=True)
                 (Path(save_html) / f"{category}.html").write_text(page.content())

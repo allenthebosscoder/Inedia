@@ -54,8 +54,10 @@ def read_inbox() -> list[dict]:
         try:
             page.wait_for_selector('a[href*="/messaging/thread/"]', timeout=15000)
         except Exception:
+            check_not_blocked(page)  # a late wall looks like "no conversations"
             return []
         pace(1.0, 2.0)
+        check_not_blocked(page)
         return extract_conversations(page)
 
 
