@@ -436,7 +436,10 @@ _JUNK_TITLE_RX = re.compile(
     r"^skip to\b|privacy policy|terms of use|cookies?\b"
     # Eightfold/Cornerstone career-hub landing chrome (MACOM/Micron,
     # 2026-09-30): a generic careers-page title, not a job title.
-    r"|^explore careers\b|^jobs$", re.I)
+    r"|^explore careers\b|^jobs$"
+    # A hamburger-menu label or bare "ABOUT US" nav link as the first line
+    # (Two Sigma / Yazaki, 2026-10-02) -- also not a job title.
+    r"|hamburger menu|^about us\b", re.I)
 
 
 def role_from_real_jd(description: str, card_role: str) -> str:

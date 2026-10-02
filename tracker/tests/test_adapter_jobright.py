@@ -46,6 +46,13 @@ def test_role_from_real_jd_rejects_cookie_and_nav_chrome_as_a_title():
         # wrongly overridden and then dropped as off-domain).
         "Explore Careers at MACOM\nMore text.",
         "Jobs\nChange the world through innovation\nMore text.",
+        # Two Sigma / Yazaki (2026-10-02): a hamburger-menu label and a bare
+        # "ABOUT US" nav link as the first line -- Two Sigma's real title
+        # ("Software Engineering Internship (Summer 2027)") was several
+        # lines further down and relevant; trusting the nav text wrongly
+        # dropped it as off-domain.
+        "Expanded hamburger menu for Two Sigma's site navigation\nMore text.",
+        "ABOUT US \nMore text.",
     ]:
         assert _role_from_real_jd(junk, card_role="Firmware Engineer Intern") \
             == "Firmware Engineer Intern", junk
