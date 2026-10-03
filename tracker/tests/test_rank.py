@@ -206,7 +206,12 @@ def test_relevant_matches_hardware_and_systems_titles():
               "Summer 2027 - Validation Engineering Intern",
               "Summer 2027 - Integration Engineer Intern",
               "Summer 2027 - Manufacturing Engineer Intern",
-              "Summer 2027 - Technology Development LV-MV Internship"]:
+              "Summer 2027 - Technology Development LV-MV Internship",
+              # General Motors, 2026-10-03 -- bare "verification engineer"
+              # had no match at all (only "design verification"/"layout
+              # verification" compound phrases were covered); Test
+              # confirmed software-side verification is in scope too.
+              "2027 Summer Intern - Software Verification Engineer, AV/AI Platform"]:
         assert RELEVANT.search(t), t
     # but a customer-facing sales title with the same words still drops
     assert OFF_DOMAIN.search("Sales Application Engineer")

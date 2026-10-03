@@ -25,7 +25,7 @@ RELEVANT = re.compile(
     r"application engineer|applications engineer|"
     r"hardware engineer|hardware design|hardware test|hardware validation|post.?silicon|"
     r"lab test engineer|product test engineer|probe test engineer|"
-    r"test development engineer|\btest engineer\b|validation engineer|"
+    r"test development engineer|\btest engineer\b|validation engineer|\bverification engineer\b|"
     r"systems performance engineer|"
     r"reliability engineer|reliability testing|failure analysis|"
     r"server platform|manufacturing engineer|\blv.mv\b|"
