@@ -152,19 +152,30 @@ def strip_tracking(url: str) -> str:
 
 def greenhouse_api_url(url: str, company: str = "") -> str | None:
     p = urlsplit(url)
-    if "greenhouse.io" not in p.netloc:
-        return None
-    m = re.search(r"/([^/]+)/jobs/(\d+)", p.path)
-    if m:
-        board, jid = m.group(1), m.group(2)
-    else:  # embed form: /embed/job_app?for=<slug>&token=NNN
-        tok = re.search(r"[?&]token=(\d+)", url)
-        forp = re.search(r"[?&]for=([A-Za-z0-9_-]+)", url)
-        slug = (forp.group(1).lower() if forp
-                else re.sub(r"[^a-z0-9]", "", (company or "").lower()))
-        if not (tok and slug):
+    if "greenhouse.io" in p.netloc:
+        m = re.search(r"/([^/]+)/jobs/(\d+)", p.path)
+        if m:
+            board, jid = m.group(1), m.group(2)
+        else:  # embed form: /embed/job_app?for=<slug>&token=NNN
+            tok = re.search(r"[?&]token=(\d+)", url)
+            forp = re.search(r"[?&]for=([A-Za-z0-9_-]+)", url)
+            slug = (forp.group(1).lower() if forp
+                    else re.sub(r"[^a-z0-9]", "", (company or "").lower()))
+            if not (tok and slug):
+                return None
+            board, jid = slug, tok.group(1)
+    else:
+        # A custom white-labeled Greenhouse domain (Pinterest, 2026-10-03:
+        # pinterestcareers.com, not greenhouse.io) using the standard
+        # ?gh_jid=<id> embed convention -- the job id is global and
+        # resolvable via the public boards-api once a board slug is known.
+        # No "for="-style slug hint exists on this form, so derive it from
+        # the company name the same way the embed form above does.
+        jidp = re.search(r"[?&]gh_jid=(\d+)", url)
+        slug = re.sub(r"[^a-z0-9]", "", (company or "").lower())
+        if not (jidp and slug):
             return None
-        board, jid = slug, tok.group(1)
+        board, jid = slug, jidp.group(1)
     return f"https://boards-api.greenhouse.io/v1/boards/{board}/jobs/{jid}?questions=true"
 
 
