@@ -81,8 +81,19 @@ def dedup_key(company: str, role: str) -> str:
     words are sorted so "Software Engineer Associate" and "Associate Software
     Engineer" (feed vs. tracker word order) match -- a reordered title almost
     always means the same job, while a seniority word ("senior", "ii") still
-    keeps the sets distinct."""
-    return f"{_norm(company)}|{' '.join(sorted(_norm(role).split()))}"
+    keeps the sets distinct.
+
+    Some real postings restate the company's own name in the title ("NVIDIA
+    2027 Internships: Hardware Engineering"), but the matching applications
+    row -- logged without it -- does not; drop any role word that's also a
+    normalized company word before comparing, so that alone doesn't keep an
+    otherwise-identical pair apart (NVIDIA, 2026-10-04: this is exactly what
+    let an already-applied-to req resurface as a fresh pick two months
+    later)."""
+    nc = _norm(company)
+    company_words = set(nc.split())
+    role_words = [w for w in _norm(role).split() if w not in company_words]
+    return f"{nc}|{' '.join(sorted(role_words))}"
 
 
 class FeedAdapter(Protocol):

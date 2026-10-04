@@ -56,6 +56,29 @@ def test_dedup_key_strips_trailing_req_id_parens():
     assert dedup_key("Amazon", "Software Development Engineer Intern, Robotics - 2027 (ID: 10529525)") == amzn
 
 
+def test_dedup_key_strips_alphanumeric_req_ids():
+    # NVIDIA (2026-10-04): the applications row carries a letter-prefixed
+    # req id -- "2027 Internships: Hardware Engineering (JR2023508)" -- that
+    # the old bare-digit-only strip (\b\d{4,}\b) never matched, since
+    # "jr2023508" has no \w/\W boundary between the letters and digits.
+    # This let a real duplicate -- Test applied to this exact req on
+    # 2026-08-19 -- resurface as a fresh pick two months later.
+    base = dedup_key("NVIDIA", "2027 Internships: Hardware Engineering")
+    assert dedup_key("NVIDIA", "2027 Internships: Hardware Engineering (JR2023508)") == base
+    assert dedup_key("NVIDIA", "2027 Internships: Software Engineering (JR2023495)") == \
+        dedup_key("NVIDIA", "2027 Internships: Software Engineering")
+
+
+def test_dedup_key_strips_role_words_that_just_repeat_the_company_name():
+    # NVIDIA (2026-10-04): the real posting's own title restates the company
+    # name ("NVIDIA 2027 Internships: Hardware Engineering"), but the
+    # applications row (logged without it) does not -- that lone extra word
+    # was enough to keep an exact-match word-set comparison from ever
+    # lining up, on top of the req-id mismatch above.
+    assert dedup_key("NVIDIA", "NVIDIA 2027 Internships: Hardware Engineering") == \
+        dedup_key("NVIDIA", "2027 Internships: Hardware Engineering (JR2023508)")
+
+
 def test_external_id_from_url_strips_query_and_slash():
     assert external_id_from_url("https://jobright.ai/jobs/abc123?ref=x") == "abc123"
     assert external_id_from_url("https://jobright.ai/p/xyz/") == "xyz"
