@@ -13,7 +13,7 @@ def test_init_db_creates_applications_table(tmp_path):
     expected = {
         "id", "date_applied", "company", "role", "type", "status",
         "referred", "reply_received", "resume_used",
-        "notes", "contact_name", "drafted_email",
+        "notes", "posting_url", "contact_name", "drafted_email",
         "outreach_contacts", "latest_outreach_date", "apply_by_date",
         "created_at", "updated_at",
     }

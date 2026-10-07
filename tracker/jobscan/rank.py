@@ -13,6 +13,11 @@ import re
 
 from jobscan.adapters.base import dedup_key
 
+try:
+    from search_preferences_private import PREFERRED_TERM_PREFIX as _PREFERRED_TERM_PREFIX
+except ImportError:
+    _PREFERRED_TERM_PREFIX = ""
+
 _PAST_SUMMER_RX = re.compile(r"summer\s+(\d{4})", re.I)
 
 # In-field titles. A role title must match one of these to stay.
@@ -115,7 +120,7 @@ _COOP_RX = re.compile(r"\bco.?op\b", re.I)
 
 def _term_weight(term: str) -> int:
     t = (term or "").lower()
-    if t.startswith("summer 2027"):
+    if _PREFERRED_TERM_PREFIX and t.startswith(_PREFERRED_TERM_PREFIX.casefold()):
         return 0
     if not t or "unknown" in t:
         return 1

@@ -21,9 +21,9 @@ function ensureWidget(): HTMLElement {
       .card{box-sizing:border-box;width:220px;padding:10px;border:1px solid #c7cdd4;border-radius:10px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.2);font:13px/1.35 system-ui,sans-serif;color:#24292f}
       .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.title{font-weight:650}.close{border:0;background:transparent;color:#59636e;font-size:18px;line-height:1;cursor:pointer;padding:0 2px}
       .profiles{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}.profileChoice{display:inline-flex;align-items:center;gap:3px;padding:4px 6px;border:1px solid #c7cdd4;border-radius:999px;background:#f6f8fa;cursor:pointer}.profileChoice input{margin:0}.fill,.check{box-sizing:border-box;width:100%;border:0;border-radius:7px;color:#fff;font-weight:650;padding:8px;cursor:pointer}.fill{background:#0875e1}.check{margin-top:7px;background:#435466}.fill:disabled,.check:disabled{opacity:.65;cursor:wait}
-      .status,.fitStatus{min-height:18px;margin-top:7px;color:#4b5560}.fitStatus:empty{display:none}.key{display:inline-flex;align-items:center;gap:5px;margin-right:7px}.dot{width:8px;height:8px;border-radius:2px}.red{background:#d1242f}.green{background:#1a7f37}.yellow{background:#bf8700}.profile{display:inline-block;margin-top:4px;color:#0969da;text-decoration:none;cursor:pointer}
+      .status,.fitStatus{min-height:18px;margin-top:7px;color:#4b5560}.fitStatus:empty{display:none}.skillsNeeded{display:none;margin-top:7px;padding:7px;border-radius:6px;background:#fff8c5;color:#5a4300;font-size:12px}.skillsNeeded.visible{display:block}.skillsNeeded ul{margin:4px 0 0;padding-left:18px}.key{display:inline-flex;align-items:center;gap:5px;margin-right:7px}.dot{width:8px;height:8px;border-radius:2px}.red{background:#d1242f}.green{background:#1a7f37}.yellow{background:#bf8700}.profile{display:inline-block;margin-top:4px;color:#0969da;text-decoration:none;cursor:pointer}
     </style>
-    <div class="card"><div class="top"><span class="title">Job Autofill</span><button class="close" title="Close" aria-label="Close">×</button></div><div class="profiles" aria-label="Profile"></div><button class="fill">Autofill this page</button><div class="status" aria-live="polite"></div><button class="check">Check international fit</button><div class="fitStatus" aria-live="polite"></div><a class="profile" role="button" tabindex="0">Edit profiles</a></div>`;
+    <div class="card"><div class="top"><span class="title">Job Autofill</span><button class="close" title="Close" aria-label="Close">×</button></div><div class="profiles" aria-label="Profile"></div><button class="fill">Autofill this page</button><div class="status" aria-live="polite"></div><div class="skillsNeeded" aria-live="polite"></div><button class="check">Check international fit</button><div class="fitStatus" aria-live="polite"></div><a class="profile" role="button" tabindex="0">Edit profiles</a></div>`;
   const profileChoices = shadow.querySelector<HTMLElement>('.profiles')!;
   void chrome.runtime.sendMessage({ type: 'LIST_AUTOFILL_PROFILES' }).then((profiles: ProfileSummary[]) => {
     profileChoices.replaceChildren(...profiles.map((profile) => {
@@ -49,6 +49,16 @@ function ensureWidget(): HTMLElement {
   });
   const fillButton = shadow.querySelector<HTMLButtonElement>('.fill')!;
   const status = shadow.querySelector<HTMLElement>('.status')!;
+  const skillsNeeded = shadow.querySelector<HTMLElement>('.skillsNeeded')!;
+  const showSkillsNeeded = (skills: string[] | undefined): void => {
+    skillsNeeded.replaceChildren();
+    if (!skills?.length) { skillsNeeded.classList.remove('visible'); return; }
+    skillsNeeded.append(document.createTextNode('Add these skills manually:'));
+    const list = document.createElement('ul');
+    skills.forEach((skill) => { const item = document.createElement('li'); item.textContent = skill; list.appendChild(item); });
+    skillsNeeded.appendChild(list);
+    skillsNeeded.classList.add('visible');
+  };
   let filling = false;
   fillButton.addEventListener('click', async () => {
     if (filling) {
@@ -68,7 +78,9 @@ function ensureWidget(): HTMLElement {
       status.textContent = response?.stopped ? 'Autofill stopped.'
         : response?.summary ? formatSummary(response.summary)
         : `Autofill failed${response?.error ? `: ${response.error}` : ' on this page.'}`;
+      showSkillsNeeded(response?.summary?.flaggedSkills);
     } catch (error) {
+      showSkillsNeeded(undefined);
       status.textContent = `Autofill failed: ${error instanceof Error ? error.message : String(error)}`;
     } finally {
       filling = false;

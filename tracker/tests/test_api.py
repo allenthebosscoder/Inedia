@@ -487,6 +487,26 @@ def test_patch_status_reaching_out_to_rejected_leaves_date_applied_unchanged(cli
     assert row["date_applied"] == "2026-09-20"
 
 
+def test_applied_clears_deadline_and_later_contact_does_not_restore_it(client):
+    response = client.post("/api/applications", json={
+        "date_applied": "2026-09-20", "company": "Acme", "role": "SWE",
+        "type": "Entry", "status": "Reaching Out",
+    })
+    app_id = response.get_json()["id"]
+    assert client.get("/api/applications").get_json()[0]["apply_by_date"]
+    response = client.patch(f"/api/applications/{app_id}", json={"status": "Applied"})
+    assert response.status_code == 200
+    assert client.get("/api/applications").get_json()[0]["apply_by_date"] == ""
+    response = client.post(f"/api/applications/{app_id}/outreach-contact", json={
+        "name": "Jane Doe", "date_sent": "2026-09-30",
+    })
+    assert response.status_code == 200
+    row = client.get("/api/applications").get_json()[0]
+    assert row["apply_by_date"] == ""
+    assert row["latest_outreach_date"] == "2026-09-30"
+    assert "Jane Doe" in row["outreach_contacts"]
+
+
 def test_outreach_contact_sets_dates_on_first_contact(client):
     create_resp = client.post("/api/applications", json={
         "date_applied": "2026-09-28", "company": "Acme", "role": "SWE",
@@ -502,7 +522,7 @@ def test_outreach_contact_sets_dates_on_first_contact(client):
     rows = client.get("/api/applications").get_json()
     row = rows[0]
     assert row["latest_outreach_date"] == "2026-09-28"
-    assert row["apply_by_date"] == "2026-10-03"
+    assert row["apply_by_date"] == "2026-09-30"
     import json as jsonlib
     assert jsonlib.loads(row["outreach_contacts"]) == [{"name": "Jane Doe", "date_sent": "2026-09-28"}]
 
@@ -522,7 +542,7 @@ def test_outreach_contact_later_date_advances_deadline(client):
 
     row = client.get("/api/applications").get_json()[0]
     assert row["latest_outreach_date"] == "2026-09-30"
-    assert row["apply_by_date"] == "2026-10-05"
+    assert row["apply_by_date"] == "2026-10-02"
 
 
 def test_outreach_contact_earlier_date_does_not_move_deadline_backward(client):
@@ -540,7 +560,7 @@ def test_outreach_contact_earlier_date_does_not_move_deadline_backward(client):
 
     row = client.get("/api/applications").get_json()[0]
     assert row["latest_outreach_date"] == "2026-09-30"
-    assert row["apply_by_date"] == "2026-10-05"
+    assert row["apply_by_date"] == "2026-10-02"
 
 
 def test_outreach_contact_earlier_than_creation_baseline_does_not_move_deadline_backward(client):
@@ -555,7 +575,7 @@ def test_outreach_contact_earlier_than_creation_baseline_does_not_move_deadline_
     app_id = create_resp.get_json()["id"]
     baseline = client.get("/api/applications").get_json()[0]
     assert baseline["latest_outreach_date"] == "2026-09-28"
-    assert baseline["apply_by_date"] == "2026-10-03"
+    assert baseline["apply_by_date"] == "2026-09-30"
 
     client.post(f"/api/applications/{app_id}/outreach-contact", json={
         "name": "Backdated Contact", "date_sent": "2026-09-20",
@@ -563,7 +583,7 @@ def test_outreach_contact_earlier_than_creation_baseline_does_not_move_deadline_
 
     row = client.get("/api/applications").get_json()[0]
     assert row["latest_outreach_date"] == "2026-09-28"
-    assert row["apply_by_date"] == "2026-10-03"
+    assert row["apply_by_date"] == "2026-09-30"
 
 
 def test_create_application_reaching_out_autofills_apply_by_date(client):
@@ -573,7 +593,7 @@ def test_create_application_reaching_out_autofills_apply_by_date(client):
     })
     row = client.get("/api/applications").get_json()[0]
     assert row["latest_outreach_date"] == "2026-09-28"
-    assert row["apply_by_date"] == "2026-10-03"
+    assert row["apply_by_date"] == "2026-09-30"
 
 
 def test_create_application_non_reaching_out_leaves_apply_by_date_blank(client):

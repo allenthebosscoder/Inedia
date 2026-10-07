@@ -2,6 +2,11 @@ import { lookupFieldKey } from './synonym-dictionary';
 import { Adapter, FieldDescriptor, FieldKind } from './types';
 import { MONIKER_TRIGGER_SELECTOR, STANDARD_COMBOBOX_TRIGGER_SELECTOR } from './combobox-fill';
 
+// Workday questionnaire dropdowns are buttons on some tenants. Those buttons can omit
+// aria-haspopup until they are opened, so relying only on the generic combobox markers makes
+// required questions such as "How Did You Hear About Us?" disappear from extraction entirely.
+const WORKDAY_QUESTIONNAIRE_SELECTOR = 'button[id^="primaryQuestionnaire--"], button[id^="secondaryQuestionnaire--"]';
+
 function resolveLabel(element: HTMLElement): string {
   let fallbackLabel = '';
   // Workable gives the hidden upload control an authoritative data-ui value. Its visible label
@@ -233,7 +238,9 @@ function resolveLabel(element: HTMLElement): string {
   for (let depth = 0; ancestor && depth < 7; depth++, ancestor = ancestor.parentElement) {
     if (ancestor.matches('form, body, html')) break;
     const text = (ancestor.innerText || ancestor.textContent || '').replace(/\s+/g, ' ').trim();
-    const controlCount = ancestor.querySelectorAll('input, textarea, select, button[aria-haspopup="listbox"]').length;
+    const controlCount = ancestor.querySelectorAll(
+      `input, textarea, select, button[aria-haspopup="listbox"], ${WORKDAY_QUESTIONNAIRE_SELECTOR}`
+    ).length;
     if (controlCount <= 3 && text.length > 0 && text.length <= 600 && lookupFieldKey(text)) return text;
   }
   return fallbackLabel;
@@ -242,6 +249,7 @@ function resolveLabel(element: HTMLElement): string {
 function isIcimsNonApplicantField(element: HTMLElement): boolean {
   const metadata = `${element.id} ${element.getAttribute('name') ?? ''}`;
   return (
+    /(?:^|\s)icims_\d+_(?:Emp|JobTitle|School|Education)/i.test(metadata) ||
     /(?:^|\s)icims_\d+_(?:Ref\d*|Sup|Emp|School|Education|Degree|Major|GPA|Graduation)/i.test(metadata) ||
     /(?:^|\s)icims_\d+_PhoneExtension\b/i.test(metadata) ||
     (/\bicims_/i.test(metadata) &&
@@ -318,12 +326,13 @@ export function extractFields(root: ParentNode = document): FieldDescriptor[] {
 
     const label = resolveLabel(element);
     if (!label) return;
+    if (fields.some((field) => field.element === element)) return;
     const profileKey = label ? lookupFieldKey(label) : null;
     fields.push({ element, label, kind, profileKey });
   });
 
   const comboboxTriggers = root.querySelectorAll(
-    `${STANDARD_COMBOBOX_TRIGGER_SELECTOR}, ${MONIKER_TRIGGER_SELECTOR}`
+    `${STANDARD_COMBOBOX_TRIGGER_SELECTOR}, ${MONIKER_TRIGGER_SELECTOR}, ${WORKDAY_QUESTIONNAIRE_SELECTOR}`
   );
 
   comboboxTriggers.forEach((el) => {
@@ -340,6 +349,7 @@ export function extractFields(root: ParentNode = document): FieldDescriptor[] {
 
     const label = resolveLabel(element);
     if (!label) return;
+    if (fields.some((field) => field.element === element)) return;
     const profileKey = label ? lookupFieldKey(label) : null;
     fields.push({ element, label, kind: 'combobox', profileKey });
   });

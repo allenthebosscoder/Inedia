@@ -54,10 +54,12 @@ async function fetchStats() {
 
 function renderRows(rows) {
     const body = document.getElementById("applications-body");
+    const showApplyBy = window.currentTab === "reaching-out";
+    document.querySelector('th[data-sort="apply_by_date"]').hidden = !showApplyBy;
     body.innerHTML = "";
     for (const row of rows) {
         const tr = document.createElement("tr");
-        if (row.status === "Reaching Out" && row.apply_by_date && row.apply_by_date < TODAY) {
+        if (showApplyBy && row.status === "Reaching Out" && row.apply_by_date && row.apply_by_date < TODAY) {
             tr.classList.add("row-overdue");
         }
 
@@ -65,9 +67,10 @@ function renderRows(rows) {
         tr.appendChild(makeCell(row.date_applied));
         tr.appendChild(makeCell(row.company));
         tr.appendChild(makeCell(row.role));
+        tr.appendChild(makePostingCell(row));
         tr.appendChild(makeCell(row.type));
         tr.appendChild(makeStatusCell(row));
-        tr.appendChild(makeApplyByCell(row));
+        if (showApplyBy) tr.appendChild(makeApplyByCell(row));
         tr.appendChild(makeContactsCell(row));
         tr.appendChild(makeToggleCell(row, "reply_received"));
         tr.appendChild(makeToggleCell(row, "referred"));
@@ -90,6 +93,20 @@ function statusClassSuffix(status) {
     return status.replace(/\s+/g, "-");
 }
 
+function makePostingCell(row) {
+    const td = document.createElement("td");
+    const url = row.posting_url || "";
+    if (!/^https?:\/\//i.test(url)) return td;
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "link";
+    link.title = "Open posting";
+    td.appendChild(link);
+    return td;
+}
+
 function makeStatusCell(row) {
     const td = document.createElement("td");
     const select = document.createElement("select");
@@ -110,6 +127,7 @@ function makeStatusCell(row) {
         if (ok) {
             select.className = `status-select status-${statusClassSuffix(select.value)}`;
             row.status = select.value;
+            await fetchApplications();
         }
     });
     td.appendChild(select);

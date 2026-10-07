@@ -17,5 +17,5 @@ def test_normalize_rejects_non_profile_urls():
 
 
 def test_enums():
-    assert CATEGORIES == ("duke", "engineer", "recruiter")
+    assert CATEGORIES == ("alumni", "engineer", "recruiter")
     assert STATUSES == ("found", "drafted", "sent", "replied", "skipped")

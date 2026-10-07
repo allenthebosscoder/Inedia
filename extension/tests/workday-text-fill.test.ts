@@ -68,7 +68,7 @@ describe('fillWorkdayTextFields', () => {
     });
     const profile: Profile = {
       ...DEFAULT_PROFILE,
-      personal: { ...DEFAULT_PROFILE.personal, phone: '9196856669' },
+      personal: { ...DEFAULT_PROFILE.personal, phone: '5555550123' },
     };
 
     const result = await fillWorkdayTextFields([{
@@ -78,7 +78,7 @@ describe('fillWorkdayTextFields', () => {
       profileKey: 'personal.phone',
     }], profile);
     expect(eventTypes).toEqual(['input:plain']);
-    expect(result.pending).toEqual([{ id: 'phoneNumber--phoneNumber', value: '9196856669' }]);
+    expect(result.pending).toEqual([{ id: 'phoneNumber--phoneNumber', value: '5555550123' }]);
 
     const originalExecCommand = document.execCommand;
     Object.defineProperty(document, 'execCommand', {

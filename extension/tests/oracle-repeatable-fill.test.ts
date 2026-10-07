@@ -118,7 +118,7 @@ describe('fillOracleRepeatableSections', () => {
       }],
       workHistory: [
         {
-          company: 'Example Robotics', title: 'Power Systems Lead', location: 'Example City, North Carolina',
+          company: 'Example Robotics', title: 'Power Systems Lead', location: 'Example City, Example State',
           startDate: '08/2024', endDate: '', currentlyWorksHere: true, description: '',
         },
         {
@@ -183,7 +183,7 @@ describe('fillOracleRepeatableSections', () => {
     const profile: Profile = {
       ...DEFAULT_PROFILE,
       workHistory: [{
-        company: 'Example Robotics', title: 'Power Systems Lead', location: 'Example City, North Carolina',
+          company: 'Example Robotics', title: 'Power Systems Lead', location: 'Example City, Example State',
         startDate: '08/2024', endDate: '', currentlyWorksHere: true, description: '',
       }],
     };
@@ -206,7 +206,7 @@ describe('fillOracleRepeatableSections', () => {
     const summary = await fillOracleRepeatableSections({
       ...DEFAULT_PROFILE,
       workHistory: [{
-        company: 'Example Robotics', title: 'Power Systems Lead', location: '',
+          company: 'Example Robotics', title: 'Power Systems Lead', location: '',
         startDate: '08/2024', endDate: '', currentlyWorksHere: true, description: '',
       }],
     });

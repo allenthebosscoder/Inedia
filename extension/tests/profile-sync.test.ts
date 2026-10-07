@@ -68,15 +68,15 @@ describe('syncProfileFromJobTracker', () => {
     await syncProfileFromJobTracker(); // creates the JobTracker profile
     const jtId = (await listProfiles()).find((p) => p.name === JOBTRACKER_PROFILE_NAME)!.id;
     const current = await getProfile(jtId);
-    await saveProfile({ ...current, personal: { ...current.personal, address: '123 Local St', city: 'Example City' } }, jtId);
+    await saveProfile({ ...current, personal: { ...current.personal, address: '123 Example St', city: 'Example City' } }, jtId);
 
-    // JobTracker doesn't know Test's address, so it sends this blank.
+    // JobTracker doesn't know the local address, so it sends this blank.
     stubFetchOk({ ...DEFAULT_PROFILE, personal: { ...DEFAULT_PROFILE.personal, firstName: 'Test' } });
     await syncProfileFromJobTracker();
 
     const profile = await getJobTrackerProfile();
     expect(profile.personal.firstName).toBe('Test');
-    expect(profile.personal.address).toBe('123 Local St');
+    expect(profile.personal.address).toBe('123 Example St');
     expect(profile.personal.city).toBe('Example City');
   });
 
@@ -109,7 +109,7 @@ describe('syncProfileFromJobTracker', () => {
   });
 
   it('updates the resume when JobTracker has one primed', async () => {
-    const resume = { name: 'Test-Acme-SWE.pdf', type: 'application/pdf', dataUrl: 'data:application/pdf;base64,ZmFrZQ==' };
+    const resume = { name: 'Test-Example-SWE.pdf', type: 'application/pdf', dataUrl: 'data:application/pdf;base64,ZmFrZQ==' };
     stubFetchOk({ ...DEFAULT_PROFILE, resume });
 
     await syncProfileFromJobTracker();
@@ -207,14 +207,14 @@ describe('syncProfileFromJobTracker', () => {
 
   describe('targetProfileName', () => {
     it('syncs into the named profile instead of the primary JobTracker slot, creating it if missing', async () => {
-      stubFetchOk({ ...DEFAULT_PROFILE, personal: { ...DEFAULT_PROFILE.personal, firstName: 'Test' }, targetProfileName: 'Custom2' });
+    stubFetchOk({ ...DEFAULT_PROFILE, personal: { ...DEFAULT_PROFILE.personal, firstName: 'Test' }, targetProfileName: 'Custom2' });
 
       await syncProfileFromJobTracker();
 
       const summaries = await listProfiles();
       const target = summaries.find((p) => p.name === 'Custom2');
       expect(target).toBeDefined();
-      expect((await getProfile(target!.id)).personal.firstName).toBe('Test');
+    expect((await getProfile(target!.id)).personal.firstName).toBe('Test');
       expect(summaries.find((p) => p.name === JOBTRACKER_PROFILE_NAME)).toBeUndefined();
     });
 
@@ -252,7 +252,7 @@ describe('syncProfileFromJobTracker', () => {
 
     it('keeps finding the same targeted profile by remembered ID after it has been renamed, instead of creating a duplicate', async () => {
       stubFetchOk({ ...DEFAULT_PROFILE, profileLabel: 'Example Role', targetProfileName: 'Custom2' });
-      await syncProfileFromJobTracker(); // creates it, renames to "Custom2 (Example Role)"
+      await syncProfileFromJobTracker(); // creates it, renames to include the role label
 
       stubFetchOk({ ...DEFAULT_PROFILE, profileLabel: 'Coinbase - Software Engineer Intern', targetProfileName: 'Custom2' });
       await syncProfileFromJobTracker(); // must find the same profile by ID, not create a second one

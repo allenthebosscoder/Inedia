@@ -94,7 +94,7 @@ describe('fillGreenhouseForm', () => {
       ...DEFAULT_PROFILE,
       personal: {
         ...DEFAULT_PROFILE.personal,
-        city: 'Example City', state: 'NC', country: 'United States', phoneCountryCode: 'United States',
+      city: 'Example City', state: 'NC', country: 'United States', phoneCountryCode: 'United States',
       },
       jobPreferences: { ...DEFAULT_PROFILE.jobPreferences, availableStartDate: '2027-05-03' },
       disclosures: {

@@ -46,7 +46,7 @@ describe('fillIndexedExperienceDescriptions', () => {
     const profile: Profile = {
       ...DEFAULT_PROFILE,
       workHistory: [{
-        company: 'Example Robotics', title: 'Power Systems Lead', location: '',
+          company: 'Example Robotics', title: 'Power Systems Lead', location: '',
         startDate: '08/2024', endDate: '', currentlyWorksHere: true, description: 'Should not overwrite',
       }],
     };

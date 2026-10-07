@@ -6,6 +6,7 @@ from flask import Flask, jsonify, render_template, request
 
 from db import init_db, get_db
 from contacts import CATEGORIES, STATUSES, normalize_profile_url
+from posting_links import posting_url, split_posting_notes
 from seed import run_seed
 from profile_data import build_profile
 from jobscan.adapters.base import dedup_key
@@ -65,8 +66,8 @@ def compute_stats(rows, today=None):
 
 
 def _apply_by_date(latest_outreach_date: str) -> str:
-    """5 days after the given date, in the same YYYY-MM-DD shape."""
-    return (datetime.strptime(latest_outreach_date, "%Y-%m-%d").date() + timedelta(days=5)).isoformat()
+    """2 days after the given date, in the same YYYY-MM-DD shape."""
+    return (datetime.strptime(latest_outreach_date, "%Y-%m-%d").date() + timedelta(days=2)).isoformat()
 
 
 def _log_outreach_contact(conn, app_id, name, date_sent) -> bool:
@@ -394,9 +395,9 @@ def create_app(db_path="tracker.db", seed=False):
         cur = conn.execute(
             """INSERT INTO applications
                (date_applied, company, role, type, status, referred,
-                reply_received, resume_used, notes)
-               VALUES (date('now'), ?, ?, ?, 'Applied', 0, 0, '', ?)""",
-            (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}"),
+                reply_received, resume_used, notes, posting_url)
+               VALUES (date('now'), ?, ?, ?, 'Applied', 0, 0, '', '', ?)""",
+            (pick["company"], pick["role"], app_type, posting_url(pick["url"])),
         )
         app_id = cur.lastrowid
         conn.execute(
@@ -429,9 +430,9 @@ def create_app(db_path="tracker.db", seed=False):
         cur = conn.execute(
             """INSERT INTO applications
                (date_applied, company, role, type, status, referred, reply_received,
-                resume_used, notes, latest_outreach_date, apply_by_date)
-               VALUES (date('now'), ?, ?, ?, 'Reaching Out', 0, 0, '', ?, ?, ?)""",
-            (pick["company"], pick["role"], app_type, f"From Daily Picks: {pick['url']}",
+                resume_used, notes, posting_url, latest_outreach_date, apply_by_date)
+               VALUES (date('now'), ?, ?, ?, 'Reaching Out', 0, 0, '', '', ?, ?, ?)""",
+            (pick["company"], pick["role"], app_type, posting_url(pick["url"]),
              today, _apply_by_date(today)),
         )
         app_id = cur.lastrowid
@@ -514,6 +515,7 @@ def create_app(db_path="tracker.db", seed=False):
     @app.route("/api/applications", methods=["POST"])
     def create_application():
         data = request.get_json(force=True) or {}
+        notes, url = split_posting_notes(data.get("notes", ""), data.get("posting_url", ""))
         required = ["date_applied", "company", "role", "type", "status"]
         missing = [f for f in required if not data.get(f)]
         if missing:
@@ -537,8 +539,8 @@ def create_app(db_path="tracker.db", seed=False):
             """
             INSERT INTO applications
                 (date_applied, company, role, type, status, referred, reply_received, resume_used, notes,
-                 latest_outreach_date, apply_by_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 latest_outreach_date, apply_by_date, posting_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 data["date_applied"],
@@ -549,9 +551,10 @@ def create_app(db_path="tracker.db", seed=False):
                 bool(data.get("referred", False)),
                 bool(data.get("reply_received", False)),
                 data.get("resume_used", ""),
-                data.get("notes", ""),
+                notes,
                 latest_outreach_date,
                 apply_by_date,
+                url,
             ),
         )
         conn.commit()
@@ -564,7 +567,7 @@ def create_app(db_path="tracker.db", seed=False):
         data = request.get_json(force=True) or {}
         conn = get_db(app.config["DATABASE"])
         existing = conn.execute(
-            "SELECT id FROM applications WHERE id = ?", (app_id,)
+            "SELECT id, status, posting_url FROM applications WHERE id = ?", (app_id,)
         ).fetchone()
         if existing is None:
             conn.close()
@@ -580,12 +583,20 @@ def create_app(db_path="tracker.db", seed=False):
         allowed_fields = {
             "date_applied", "company", "role", "type", "status",
             "referred", "reply_received", "resume_used", "notes",
-            "contact_name", "drafted_email",
+            "contact_name", "drafted_email", "posting_url",
         }
+        if "notes" in data:
+            data["notes"], data["posting_url"] = split_posting_notes(
+                data["notes"], data.get("posting_url", existing["posting_url"]))
+        elif "posting_url" in data:
+            data["posting_url"] = posting_url(data["posting_url"])
         updates = {k: v for k, v in data.items() if k in allowed_fields}
         if not updates:
             conn.close()
             return jsonify({"error": "no valid fields to update"}), 400
+
+        if updates.get("status", existing["status"]) == "Applied":
+            updates["apply_by_date"] = ""
 
         set_clause = ", ".join(f"{field} = ?" for field in updates)
         values = list(updates.values()) + [app_id]
@@ -634,7 +645,7 @@ def create_app(db_path="tracker.db", seed=False):
         if request.args.get("application_id"):
             query += " AND application_id = ?"
             params.append(request.args["application_id"])
-        query += " ORDER BY CASE category WHEN 'duke' THEN 0 WHEN 'engineer' THEN 1 ELSE 2 END, id"
+        query += " ORDER BY CASE category WHEN 'alumni' THEN 0 WHEN 'engineer' THEN 1 ELSE 2 END, id"
         rows = [dict(r) for r in conn.execute(query, params).fetchall()]
         conn.close()
         return jsonify(rows)
@@ -779,12 +790,13 @@ def create_app(db_path="tracker.db", seed=False):
                 # blank rather than failing the whole import.
                 apply_by_date = ""
 
+            notes, url = split_posting_notes(notes)
             conn.execute(
                 """
                 INSERT INTO applications
                     (date_applied, company, role, type, status, referred, reply_received, resume_used, notes,
-                     latest_outreach_date, apply_by_date)
-                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?)
+                     latest_outreach_date, apply_by_date, posting_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, ?, ?, ?)
                 """,
                 (
                     date_applied, company, role, type_, status,
@@ -793,6 +805,7 @@ def create_app(db_path="tracker.db", seed=False):
                     notes,
                     latest_outreach_date,
                     apply_by_date,
+                    url,
                 ),
             )
             inserted += 1

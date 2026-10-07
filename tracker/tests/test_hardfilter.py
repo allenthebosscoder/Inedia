@@ -139,7 +139,7 @@ def test_drops_high_school_only_roles():
     # Stripe (2026-10-01): "High School Fellowship, Software Engineering" --
     # the title alone doesn't say "intern" oddly enough it reads as a normal
     # SWE intern role and RELEVANT matches fine, but the JD is explicit that
-    # Test (a college student) isn't eligible at all.
+    # A current student isn't eligible for this high-school-only role.
     for desc in [
         "High School Internship, Software Engineering (Summer 2027)\n"
         "This role is intended for current high school students "

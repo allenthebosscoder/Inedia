@@ -1,4 +1,4 @@
-"""Find Duke alumni, relevant engineers, and recruiters at a company on
+"""Find alumni, relevant engineers, and recruiters at a company on
 LinkedIn (READ-ONLY) and store them via the tracker API.
 
 Usage (from the tracker root, tracker server running):
@@ -21,14 +21,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from jobscan.linkedin import LinkedInBlocked, check_not_blocked, launch, pace
 from jobscan.linkedin_extract import extract_people
 
-CATEGORY_ORDER = ("duke", "engineer", "recruiter")
+CATEGORY_ORDER = ("alumni", "engineer", "recruiter")
 PER_SEARCH_CAP = 8
 RECRUITER_WORDS = ("recruit", "talent acquisition", "sourcer")
 
 
 def search_queries(company: str, role_keywords: str):
     return [
-        ("duke", f"{company} Example University"),
+        ("alumni", f"{company} alumni"),
         ("engineer", f"{company} {role_keywords}"),
         ("recruiter", f"{company} university recruiter"),
     ]

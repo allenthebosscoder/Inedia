@@ -23,7 +23,7 @@ def _app(client, company="Acme", status="Reaching Out"):
 def _bulk(client, company="Acme", contacts=None):
     contacts = contacts if contacts is not None else [
         {"name": "Jane Doe", "title": "Engineer at Acme",
-         "profile_url": "https://www.linkedin.com/in/jane-doe", "category": "duke"},
+         "profile_url": "https://www.linkedin.com/in/jane-doe", "category": "alumni"},
     ]
     return client.post("/api/contacts/bulk", json={"company": company, "contacts": contacts})
 
@@ -39,13 +39,13 @@ def test_bulk_inserts_and_links_reaching_out_application(client):
     rows = client.get("/api/contacts?company=acme").get_json()
     assert len(rows) == 1
     assert rows[0]["application_id"] == app_id
-    assert rows[0]["status"] == "found" and rows[0]["category"] == "duke"
+    assert rows[0]["status"] == "found" and rows[0]["category"] == "alumni"
 
 
 def test_bulk_dedupes_url_variants(client):
     _bulk(client)
     resp = _bulk(client, contacts=[
-        {"name": "Jane Doe", "title": "", "category": "duke",
+        {"name": "Jane Doe", "title": "", "category": "alumni",
          "profile_url": "https://linkedin.com/in/Jane-Doe/?miniProfile=x"},
     ])
     assert resp.get_json() == {"inserted": 0, "skipped": 1}
@@ -53,8 +53,8 @@ def test_bulk_dedupes_url_variants(client):
 
 
 def test_bulk_rejects_invalid_contact_and_inserts_nothing(client):
-    good = {"name": "A", "title": "", "profile_url": "https://www.linkedin.com/in/a", "category": "duke"}
-    bad = {"name": "B", "title": "", "profile_url": "https://example.com/b", "category": "duke"}
+    good = {"name": "A", "title": "", "profile_url": "https://www.linkedin.com/in/a", "category": "alumni"}
+    bad = {"name": "B", "title": "", "profile_url": "https://example.com/b", "category": "alumni"}
     assert _bulk(client, contacts=[good, bad]).status_code == 400
     bad_cat = dict(good, category="wizard")
     assert _bulk(client, contacts=[bad_cat]).status_code == 400
@@ -114,11 +114,11 @@ def test_patch_rejects_sent_unknown_field_and_bad_status(client):
     assert client.patch("/api/contacts/999", json={"draft": "x"}).status_code == 404
 
 
-def test_list_orders_duke_then_engineer_then_recruiter(client):
+def test_list_orders_alumni_then_engineer_then_recruiter(client):
     def c(n, cat):
         return {"name": n, "title": "", "category": cat,
                 "profile_url": f"https://www.linkedin.com/in/{n}"}
-    _bulk(client, contacts=[c("r", "recruiter"), c("e", "engineer"), c("d", "duke")])
+    _bulk(client, contacts=[c("r", "recruiter"), c("e", "engineer"), c("d", "alumni")])
     assert [r["name"] for r in client.get("/api/contacts").get_json()] == ["d", "e", "r"]
 
 

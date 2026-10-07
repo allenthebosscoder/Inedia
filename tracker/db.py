@@ -1,4 +1,5 @@
 import sqlite3
+from posting_links import migrate_posting_links
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS applications (
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS applications (
     reply_received INTEGER NOT NULL DEFAULT 0,
     resume_used TEXT DEFAULT '',
     notes TEXT DEFAULT '',
+    posting_url TEXT DEFAULT '',
     contact_name TEXT DEFAULT '',
     drafted_email TEXT DEFAULT '',
     outreach_contacts TEXT DEFAULT '[]',
@@ -91,6 +93,8 @@ CREATE TABLE IF NOT EXISTS daily_picks (
 # {table: {column: definition}} — added to existing tables when missing.
 MIGRATION_COLUMNS = {
     "applications": {
+        "notes": "TEXT DEFAULT ''",
+        "posting_url": "TEXT DEFAULT ''",
         "contact_name": "TEXT DEFAULT ''",
         "drafted_email": "TEXT DEFAULT ''",
         "outreach_contacts": "TEXT DEFAULT '[]'",
@@ -147,4 +151,10 @@ def init_db(db_path):
     conn = get_db(db_path)
     conn.executescript(SCHEMA)
     _migrate(conn)
+    migrate_posting_links(conn)
+    conn.execute(
+        "UPDATE applications SET apply_by_date='' "
+        "WHERE status='Applied' AND COALESCE(apply_by_date, '') != ''"
+    )
+    conn.commit()
     conn.close()

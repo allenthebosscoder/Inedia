@@ -6,7 +6,7 @@ Usage (from the tracker root, tracker server running):
 Opens only the messaging list page; never opens a thread, never types or
 sends. The stored reply text is the inbox preview line. It updates the
 CONTACT only -- the application's reply_received/referred flags are left for
-Claude to confirm with Test. Exits 2 on a login wall / checkpoint.
+    explicit review. Exits 2 on a login wall / checkpoint.
 """
 import argparse
 import json

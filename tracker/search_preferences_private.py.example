@@ -7,7 +7,13 @@ import datetime
 # (year, month) of the earliest date you could plausibly start a full-time
 # role. A "New Grad" posting whose stated degree-completion window, or
 # title-level graduating class, ends before this is not a fit.
-EARLIEST_GRAD = (2027, 5)
+# Set this to your own earliest graduation date, or leave it unset/None to
+# disable graduation-window filtering.
+EARLIEST_GRAD = None
+
+# Optional ranking preference, for example "summer 2028". Leave blank for no
+# user-specific term preference.
+PREFERRED_TERM_PREFIX = ""
 
 # Company holds you want the ranker to respect right now. Each entry is
 # ((names...), until) -- `names` are lowercase company-name fragments to

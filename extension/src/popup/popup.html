@@ -8,6 +8,9 @@
       #profile-choices { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; font-size: 12px; }
       #profile-choices label { display: inline-flex; gap: 3px; align-items: center; border: 1px solid #ccc; border-radius: 999px; padding: 3px 6px; }
       #status { margin-top: 8px; font-size: 13px; color: #444; }
+      #skills-needed { display: none; margin-top: 8px; padding: 8px; border-radius: 6px; background: #fff8c5; color: #5a4300; font-size: 12px; }
+      #skills-needed.visible { display: block; }
+      #skills-needed ul { margin: 4px 0 0; padding-left: 18px; }
     </style>
   </head>
   <body>
@@ -15,6 +18,7 @@
     <div id="profile-choices"></div>
     <button id="fill-button">Autofill this page</button>
     <div id="status"></div>
+    <div id="skills-needed" aria-live="polite"></div>
     <a href="options.html" target="_blank">Edit profile</a>
     <script src="popup.js"></script>
   </body>

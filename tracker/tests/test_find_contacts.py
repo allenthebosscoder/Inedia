@@ -15,26 +15,26 @@ def _p(name, title, blob=None):
 
 def test_search_queries_three_categories():
     qs = fc.search_queries("Acme", "firmware engineer")
-    assert [c for c, _ in qs] == ["duke", "engineer", "recruiter"]
-    assert qs[0][1] == "Acme Example University"
+    assert [c for c, _ in qs] == ["alumni", "engineer", "recruiter"]
+    assert qs[0][1] == "Acme alumni"
     assert qs[1][1] == "Acme firmware engineer"
     assert qs[2][1] == "Acme university recruiter"
 
 
 def test_search_url_is_people_search_and_encoded():
-    url = fc.search_url("Acme Example University")
-    assert url == "https://www.linkedin.com/search/results/people/?keywords=Acme%20Duke%20University"
+    url = fc.search_url("Acme alumni")
+    assert url == "https://www.linkedin.com/search/results/people/?keywords=Acme%20alumni"
 
 
 def test_collect_filters_other_employers():
-    results = {"duke": [_p("Ann", "Engineer at Acme"), _p("Bob", "Engineer at Globex")]}
+    results = {"alumni": [_p("Ann", "Engineer at Acme"), _p("Bob", "Engineer at Globex")]}
     out = fc.collect(results, "Acme", 15)
     assert [c["name"] for c in out] == ["Ann"]
 
 
 def test_collect_recruiter_title_overrides_category_and_dedupes():
     results = {
-        "duke": [_p("Cy", "Technical Recruiter at Acme")],
+        "alumni": [_p("Cy", "Technical Recruiter at Acme")],
         "engineer": [_p("Cy", "Technical Recruiter at Acme"), _p("Di", "SWE at Acme")],
     }
     out = fc.collect(results, "Acme", 15)
@@ -43,17 +43,17 @@ def test_collect_recruiter_title_overrides_category_and_dedupes():
 
 def test_collect_respects_max_total_and_category_priority():
     results = {
-        "duke": [_p(f"D{i}", "Eng at Acme") for i in range(5)],
+        "alumni": [_p(f"D{i}", "Eng at Acme") for i in range(5)],
         "engineer": [_p(f"E{i}", "Eng at Acme") for i in range(5)],
         "recruiter": [_p("R0", "Recruiter at Acme")],
     }
     out = fc.collect(results, "Acme", 7)
     assert len(out) == 7
-    assert [c["category"] for c in out].count("duke") == 5
+    assert [c["category"] for c in out].count("alumni") == 5
 
 
 def test_collect_empty_results():
-    assert fc.collect({"duke": [], "engineer": [], "recruiter": []}, "Acme", 15) == []
+    assert fc.collect({"alumni": [], "engineer": [], "recruiter": []}, "Acme", 15) == []
     assert fc.collect({}, "Acme", 15) == []
 
 

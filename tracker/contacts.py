@@ -3,7 +3,7 @@ docs/superpowers/specs/2026-10-02-contact-finding-design.md)."""
 import re
 from urllib.parse import urlsplit
 
-CATEGORIES = ("duke", "engineer", "recruiter")
+CATEGORIES = ("alumni", "engineer", "recruiter")
 STATUSES = ("found", "drafted", "sent", "replied", "skipped")
 
 _PROFILE_PATH = re.compile(r"^/in/([^/]+)")

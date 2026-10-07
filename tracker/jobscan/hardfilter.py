@@ -369,17 +369,12 @@ def _looks_like_title(line: str) -> bool:
     return bool(_TITLE_LIKE_RX.search(line)) and not _TITLE_SENTENCE_GUARD_RX.search(line)
 
 
-# The earliest possible graduation date, as (year, month) -- personal, so it
-# lives in the gitignored search_preferences_private.py (see .example for the
-# template). A "New Grad" posting with an explicit degree-completion window
-# entirely before this excludes the user no matter which of their real
-# degree-completion paths they take (real example: "Degree completed between
-# December 2025 and August 2026, with availability to begin employment in
-# 2026" -- a full year earlier than a May 2027 earliest grad).
+# The earliest possible graduation date, as (year, month), is a local user
+# preference. It belongs in the gitignored search_preferences_private.py.
 try:
-    from search_preferences_private import EARLIEST_GRAD as _ALLEN_EARLIEST_GRAD
+    from search_preferences_private import EARLIEST_GRAD as _EARLIEST_GRAD
 except ImportError:
-    _ALLEN_EARLIEST_GRAD = (2027, 5)
+    _EARLIEST_GRAD = None
 _GRAD_WINDOW_RX = re.compile(
     r"(?:degree\s+complet\w*|graduation)\s*(?:must\s+have\s+occurred\s+)?"
     r"between\s+" + _MONTH_RX + r"\s+(\d{4})\s+and\s+" + _MONTH_RX + r"\s+(\d{4})", re.I)
@@ -404,12 +399,12 @@ def _grad_window_dropped(text: str) -> bool:
     m = _GRAD_WINDOW_RX.search(text)
     if m:
         end_month, end_year = _MONTHS[m.group(3).lower()], int(m.group(4))
-        if (end_year, end_month) < _ALLEN_EARLIEST_GRAD:
+        if _EARLIEST_GRAD and (end_year, end_month) < _EARLIEST_GRAD:
             return True
     m = _GRAD_BY_RX.search(text)
     if m:
         end_month, end_year = _MONTHS[m.group(1).lower()], int(m.group(2))
-        if (end_year, end_month) < _ALLEN_EARLIEST_GRAD:
+        if _EARLIEST_GRAD and (end_year, end_month) < _EARLIEST_GRAD:
             return True
     return False
 
@@ -418,7 +413,7 @@ def _title_grad_year_dropped(role: str) -> bool:
     m = _TITLE_GRAD_YEAR_RX.search(role or "")
     if not m:
         return False
-    return (int(m.group(1)), 5) < _ALLEN_EARLIEST_GRAD
+    return bool(_EARLIEST_GRAD and (int(m.group(1)), 5) < _EARLIEST_GRAD)
 
 
 # A degree-tiered experience requirement ("Master's Level Degree and 0

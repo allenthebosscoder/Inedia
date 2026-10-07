@@ -5,6 +5,25 @@ import { listProfiles } from '../storage/profile-store';
 async function main(): Promise<void> {
   const siteLabel = document.getElementById('site-label')!;
   const statusEl = document.getElementById('status')!;
+  const skillsNeededEl = document.getElementById('skills-needed');
+
+  const showSkillsNeeded = (skills: string[] | undefined): void => {
+    if (!skillsNeededEl) return;
+    skillsNeededEl.replaceChildren();
+    if (!skills?.length) {
+      skillsNeededEl.classList.remove('visible');
+      return;
+    }
+    skillsNeededEl.append(document.createTextNode('Add these skills manually:'));
+    const list = document.createElement('ul');
+    skills.forEach((skill) => {
+      const item = document.createElement('li');
+      item.textContent = skill;
+      list.appendChild(item);
+    });
+    skillsNeededEl.appendChild(list);
+    skillsNeededEl.classList.add('visible');
+  };
 
   const activeTab = async (): Promise<chrome.tabs.Tab | undefined> => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -65,7 +84,9 @@ async function main(): Promise<void> {
         }
 
         statusEl.textContent = formatSummary(result);
+        showSkillsNeeded(result.flaggedSkills);
       } catch (error) {
+        showSkillsNeeded(undefined);
         statusEl.textContent = 'Autofill failed: this page could not be filled.';
       } finally {
         filling = false;

@@ -6,7 +6,7 @@ export const JOBTRACKER_PROFILE_NAME = 'Custom';
 
 // The profile JobTracker owns is tracked by a stable ID, not by its display
 // name -- that's what lets syncProfileFromJobTracker() rename it to show the
-// currently-primed role (e.g. "Custom (Amazon - Cloud Hardware Intern)")
+// currently-primed role (e.g. "Custom (role label)")
 // without losing track of it on the next sync and creating a stray
 // duplicate, which is exactly what happened before this existed (see
 // job_tracker_autofill_extension memory). The same tracking applies to a
@@ -117,16 +117,12 @@ async function getOrCreateNamedProfileId(baseName: string, storageKey: string): 
  * other profiles are never touched.
  *
  * Normally that's the single dedicated JobTracker-owned profile (base name
- * "Custom", tracked under JOBTRACKER_PROFILE_ID_KEY). But when JobTracker's
- * response carries a `targetProfileName` (Test explicitly priming a
- * *different*, by-name profile — e.g. a second one he's using for
- * independent testing, so the primary slot stays untouched), sync goes to
- * that named profile instead, tracked under its own key so it never
- * collides with the primary slot or with a different named target.
+ * "Custom", tracked under JOBTRACKER_PROFILE_ID_KEY). A response may instead
+ * carry a target profile name for an explicitly selected independent profile.
  *
  * Either way, the resolved profile gets renamed to show the role JobTracker
  * currently has primed (e.g. "Custom (Amazon - Cloud Hardware Intern)" or
- * "Custom 2 (Example Role)"), so it's visible at a
+ * "Custom 2 (role label)"), so it's visible at a
  * glance in the profile picker whether a resume was actually just updated,
  * instead of a bare name that looks identical every time. The remembered
  * per-base-name ID is what makes that rename safe: the next sync still

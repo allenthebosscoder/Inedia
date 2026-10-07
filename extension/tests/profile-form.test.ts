@@ -117,17 +117,17 @@ describe('serializeProfile', () => {
     document.body.innerHTML = FORM_HTML;
     const form = document.getElementById('profile-form') as HTMLFormElement;
     (form.elements.namedItem('personal.addressLine2') as HTMLInputElement).value = 'Apartment 4B';
-    (form.elements.namedItem('personal.county') as HTMLInputElement).value = 'Example City';
+    (form.elements.namedItem('personal.county') as HTMLInputElement).value = 'Example County';
 
     const profile = serializeProfile(form, DEFAULT_PROFILE);
     expect(profile.personal.addressLine2).toBe('Apartment 4B');
-    expect(profile.personal.county).toBe('Example City');
+    expect(profile.personal.county).toBe('Example County');
 
     (form.elements.namedItem('personal.addressLine2') as HTMLInputElement).value = '';
     (form.elements.namedItem('personal.county') as HTMLInputElement).value = '';
     populateForm(form, profile);
     expect((form.elements.namedItem('personal.addressLine2') as HTMLInputElement).value).toBe('Apartment 4B');
-    expect((form.elements.namedItem('personal.county') as HTMLInputElement).value).toBe('Example City');
+    expect((form.elements.namedItem('personal.county') as HTMLInputElement).value).toBe('Example County');
   });
 
   it('reads phoneCountryCode from the form into a Profile', () => {

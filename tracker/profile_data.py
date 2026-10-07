@@ -7,7 +7,7 @@ import json
 import os
 
 ACTIVE_PROFILE_PATH = os.path.join(os.path.dirname(__file__), "resumes", "active_profile.json")
-GRAD_DATE_BY_TYPE = {"Entry": "05/2027", "Intern": "12/2027"}
+GRAD_DATE_BY_TYPE = {}
 
 STATIC_PROFILE = {
     "version": 1, "personal": {"firstName": "Example", "middleName": "", "lastName": "User", "email": "you@example.com", "phone": "", "address": "", "addressLine2": "", "city": "", "county": "", "country": "United States", "state": "", "zip": "", "phoneType": "mobile", "phoneCountryCode": "United States"},
@@ -15,7 +15,7 @@ STATIC_PROFILE = {
     "jobPreferences": {"availableStartDate": "", "atLeast18": "", "minimumSalary": "", "compensationMax": "", "usCitizen": "", "securityClearance": "", "willingToRelocate": "", "willingToWorkOnsite": "", "canCommitInternshipTerm": ""},
     "professional": {"hasNonCompeteAgreement": "", "everTerminated": "", "highestEducation": "bachelors", "skills": "Python, JavaScript, Git"},
     "disclosures": {"hispanicOrLatino": "", "gender": "", "raceEthnicity": "", "veteranStatus": "", "disabilityStatus": ""},
-    "links": {"linkedin": "", "portfolio": "", "github": ""}, "workHistory": [{"company": "Example Labs", "title": "Software Intern", "location": "Example City", "startDate": "2025-05", "endDate": "", "currentlyWorksHere": True, "description": "Built and tested software systems."}], "education": [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": "05/2027", "startDate": "2023-08", "endDate": "05/2027", "gpa": ""}], "overrides": {},
+    "links": {"linkedin": "", "portfolio": "", "github": ""}, "workHistory": [{"company": "Example Labs", "title": "Software Intern", "location": "Example City", "startDate": "", "endDate": "", "currentlyWorksHere": True, "description": "Built and tested software systems."}], "education": [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": "", "startDate": "", "endDate": "", "gpa": ""}], "overrides": {},
 }
 
 try:
@@ -51,7 +51,7 @@ def build_profile(path=ACTIVE_PROFILE_PATH):
     if active.get("work_history"):
         profile["workHistory"] = [{"company": e.get("company", e.get("employer", "")), "title": e.get("title", e.get("jobTitle", "")), "location": e.get("location", ""), "startDate": e.get("startDate", ""), "endDate": e.get("endDate", ""), "currentlyWorksHere": e.get("currentlyWorksHere", e.get("current", False)), "description": e.get("description", "")} for e in active["work_history"]]
     profile["profileLabel"] = active.get("role_label") or ""
-    profile["education"] = [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, GRAD_DATE_BY_TYPE["Entry"]), "startDate": "2023-08", "endDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, GRAD_DATE_BY_TYPE["Entry"]), "gpa": ""}]
+    profile["education"] = [{"school": "Example University", "degree": "Bachelor of Science", "fieldOfStudy": "Computer Engineering", "graduationDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, ""), "startDate": "", "endDate": active.get("grad_date") or GRAD_DATE_BY_TYPE.get(role_type, ""), "gpa": ""}]
     return profile
 
 def set_active_profile(role_type, resume_name, resume_data_url, skills=None, work_history=None, role_label=None, grad_date=None, target_profile_name=None, path=ACTIVE_PROFILE_PATH):

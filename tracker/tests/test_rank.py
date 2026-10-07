@@ -1,5 +1,6 @@
 """jobscan.rank — turn a run artifact's candidates into a ranked /picks list."""
 from jobscan.adapters.base import dedup_key
+import jobscan.rank as rank_module
 from jobscan.rank import rank, RELEVANT, OFF_DOMAIN
 
 
@@ -58,7 +59,7 @@ def test_no_company_sponsorship_blocklist():
 def test_defense_prime_companies_dropped():
     for co in ["L3Harris Technologies", "General Dynamics Mission Systems", "RTX",
                "Raytheon", "CACI International", "Anduril Industries", "Saronic",
-               "Lockheed Martin", "Northrop Grumman", "Booz Test Hamilton",
+               "Lockheed Martin", "Northrop Grumman", "Booz Allen Hamilton",
                "Bascom Hunter"]:
         cands = [_c(co, "Software Engineer Intern", term="Summer 2027", score=80)]
         ranked, dropped = rank(cands, applied_keys=set(), deleted_keys=set())
@@ -140,7 +141,8 @@ def test_defense_and_clearance_titles_dropped_at_any_company():
     assert [r["role"] for r in ranked] == ["Embedded Software Engineer New Grad"]
 
 
-def test_hardware_and_summer_2027_rank_above_generic_swe():
+def test_hardware_and_preferred_term_rank_above_generic_swe(monkeypatch):
+    monkeypatch.setattr(rank_module, "_PREFERRED_TERM_PREFIX", "summer 2027")
     cands = [
         _c("A", "Software Engineer Intern", term="Summer 2027", score=80),
         _c("B", "Embedded Firmware Engineer Intern", term="Unknown", score=40),
@@ -198,7 +200,7 @@ def test_relevant_matches_hardware_and_systems_titles():
               "Intern - Signal Integrity",  # Micron, 2026-09-29 -- a distinct EE discipline from "signal process[ing]"
               "Summer 2027 - Probe Test Engineer Intern",  # onsemi, 2026-10-01 -- wafer-probe test, not "lab"/"product" test engineer
               "Summer 2027 - Test Development Engineering Internship",  # onsemi, 2026-10-01
-              # onsemi, 2026-10-01 -- Test confirmed test/validation/
+              # example case, 2026-10-01 -- a reviewer confirmed test/validation/
               # systems/manufacturing/power-electronics internships are in
               # scope (distinct from the fab/chemical-process side -- e.g.
               # lithography, metrology, wet process -- which stays out).
@@ -209,7 +211,7 @@ def test_relevant_matches_hardware_and_systems_titles():
               "Summer 2027 - Technology Development LV-MV Internship",
               # General Motors, 2026-10-03 -- bare "verification engineer"
               # had no match at all (only "design verification"/"layout
-              # verification" compound phrases were covered); Test
+              # verification" compound phrases were covered); reviewer
               # confirmed software-side verification is in scope too.
               "2027 Summer Intern - Software Verification Engineer, AV/AI Platform"]:
         assert RELEVANT.search(t), t
@@ -218,7 +220,7 @@ def test_relevant_matches_hardware_and_systems_titles():
 
 
 def test_relevant_excludes_fab_process_engineering_titles():
-    # onsemi, 2026-10-01 -- Test explicitly chose to keep these out: the
+    # example case, 2026-10-01 -- a reviewer explicitly chose to keep these out: the
     # chemical/materials-process side of semiconductor fab work, distinct
     # from the test/validation/systems group confirmed relevant above.
     for t in ["Summer 2027 - Lithography Engineering Intern",

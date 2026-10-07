@@ -278,7 +278,7 @@ describe('fillAdpRecruitingForm — Employment History', () => {
       ...DEFAULT_PROFILE,
       workHistory: [
         {
-          company: 'Acme', title: 'Engineer', location: 'Example City', startDate: '06/2021',
+        company: 'Acme', title: 'Engineer', location: 'Example City', startDate: '06/2021',
           endDate: '08/2023', currentlyWorksHere: false, description: 'Built things',
           supervisorName: 'Dana Lee',
         },

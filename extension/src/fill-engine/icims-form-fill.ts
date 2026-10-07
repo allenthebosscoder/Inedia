@@ -25,7 +25,8 @@ function parseProfileDate(value: string): DateParts | null {
 function setMissingValue(element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null, value: string): number {
   if (!element || !value || (element.value && element.value !== '0' && element.value !== '-999')) return 0;
   const desired = element instanceof HTMLSelectElement
-    ? Array.from(element.options).find((option) => option.value === value)?.value ?? ''
+    ? (Array.from(element.options).find((option) => option.value === value)?.value ??
+      Array.from(element.options).find((option) => option.textContent?.trim().toLowerCase() === value.trim().toLowerCase())?.value ?? '')
     : value;
   if (!desired) return 0;
   setNativeValue(element, desired);
@@ -56,6 +57,34 @@ function fillDate(prefix: string, value: string): number {
     setMissingValue(document.getElementById(`${prefix}_Date`) as HTMLSelectElement | null, parts.day) +
     setMissingValue(document.getElementById(`${prefix}_Year`) as HTMLInputElement | null, parts.year)
   );
+}
+
+function fillIcimsDate(prefix: string, value: string): number {
+  const parts = parseProfileDate(value);
+  if (!parts) return 0;
+  const month = document.getElementById(`${prefix}_Month`) as HTMLSelectElement | null;
+  let filled = 0;
+  if (month && (!month.value || month.value === '0' || month.value === '-999')) {
+    const option = Array.from(month.options).find((candidate) =>
+      candidate.value === parts.month || candidate.value === String(Number(parts.month)) ||
+      candidate.textContent?.trim().toLowerCase() === MONTH_NAMES[Number(parts.month) - 1]?.toLowerCase()
+    );
+    if (option) { setNativeValue(month, option.value); filled++; }
+  }
+  filled += setMissingValue(document.getElementById(`${prefix}_Date`) as HTMLInputElement | null, parts.day);
+  filled += setMissingValue(document.getElementById(`${prefix}_Year`) as HTMLInputElement | null, parts.year);
+  return filled;
+}
+
+function splitLocation(location: string | undefined): { city: string; state: string; country: string } {
+  const parts = (location ?? '').split(',').map((part) => part.trim()).filter(Boolean);
+  return { city: parts[0] ?? '', state: parts[1] ?? '', country: parts[2] ?? '' };
+}
+
+function clearProfilePhoneFromJobTitle(element: HTMLInputElement | null, profile: Profile): number {
+  if (!element || !profile.personal.phone || element.value.trim() !== profile.personal.phone.trim()) return 0;
+  setNativeValue(element, '');
+  return 1;
 }
 
 function normalizedPhone(value: string): string {
@@ -272,15 +301,40 @@ export function fillIcimsForm(profile: Profile): FillSummary {
 
   profile.workHistory.forEach((entry, index) => {
     const prefix = `icims_${index}_`;
-    filled += setMissingValue(document.getElementById(`${prefix}EmpName`) as HTMLInputElement | null, entry.company);
-    filled += setMissingValue(document.getElementById(`${prefix}EmpTitle`) as HTMLInputElement | null, entry.title);
+    const location = splitLocation(entry.location);
+    const jobTitle = (document.getElementById(`${prefix}JobTitle1`) || document.getElementById(`${prefix}EmpTitle`)) as HTMLInputElement | null;
+    const state = location.state || profile.personal.state;
+    const country = location.country || profile.personal.country;
+    filled += setMissingValue(
+      (document.getElementById(`${prefix}EmpName1`) || document.getElementById(`${prefix}EmpName`)) as HTMLInputElement | null,
+      entry.company
+    );
+    filled += clearProfilePhoneFromJobTitle(jobTitle, profile);
+    filled += setMissingValue(jobTitle, entry.title);
+    filled += setMissingValue(document.getElementById(`${prefix}EmpCity1`) as HTMLInputElement | null, location.city || profile.personal.city);
+    filled += setMissingValue(document.getElementById(`${prefix}EmpState1`) as HTMLSelectElement | null, state);
+    filled += setMissingValue(document.getElementById(`${prefix}EmpCountry1`) as HTMLInputElement | null, country);
+    filled += setMissingValue(document.getElementById(`${prefix}Emp1SupName`) as HTMLInputElement | null, entry.supervisorName ?? '');
     filled += restoreDescriptionFormatting(
-      document.getElementById(`${prefix}EmpDescription`) as HTMLTextAreaElement | null,
+      (document.getElementById(`${prefix}Emp1Duties`) || document.getElementById(`${prefix}EmpDescription`)) as HTMLTextAreaElement | null,
       entry.description
     );
-    filled += fillDate(`${prefix}EmpStart`, entry.startDate);
-    if (!entry.currentlyWorksHere) filled += fillDate(`${prefix}EmpEnd`, entry.endDate);
+    filled += restoreDescriptionFormatting(
+      document.getElementById(`${prefix}Emp1ReasonLeaving`) as HTMLTextAreaElement | null,
+      entry.reasonForLeaving ?? ''
+    );
+    filled += fillIcimsDate(`${prefix}Emp1From`, entry.startDate);
+    if (!entry.currentlyWorksHere) filled += fillIcimsDate(`${prefix}Emp1To`, entry.endDate);
   });
+
+  const contact = profile.workHistory.find((entry) => entry.mayContact);
+  if (contact?.mayContact) {
+    const value = contact.mayContact === 'yes' ? 'Yes' : 'No';
+    const radio = document.querySelector<HTMLInputElement>(
+      `input[name="icims_f_Contact_Present_Employer"][value="${value}"]`
+    );
+    if (radio && !radio.checked) { radio.click(); filled++; }
+  }
 
   // These are corrections, not newly filled answers, so they intentionally do not increase the
   // "filled" summary. Only clear values that exactly duplicate the saved applicant identity.

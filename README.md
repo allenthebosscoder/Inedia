@@ -12,3 +12,8 @@ Profile data, resumes, applications, and browser sessions stay on each user’s 
 - `extension/` — Chrome extension for local profile management and cautious autofill.
 
 See each project’s documentation for setup. Contributions are welcome; please use fake data in fixtures and examples.
+
+Before publishing a fork, inspect the entire Git history—not only the current
+checkout—for names, resumes, application URLs, job-search decisions, contact
+records, browser captures, and credentials. Remove or rewrite any such history
+before pushing to a public remote.

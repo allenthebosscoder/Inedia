@@ -152,7 +152,7 @@ def test_outreach_creates_application_with_reaching_out_status(client):
     # The Reaching Out button *is* the outreach event -- Apply By is
     # populated immediately, not left blank until a contact is logged.
     assert match["latest_outreach_date"] == date.today().isoformat()
-    assert match["apply_by_date"] == (date.today() + timedelta(days=5)).isoformat()
+    assert match["apply_by_date"] == (date.today() + timedelta(days=2)).isoformat()
 
     pick = client.get("/api/picks").get_json()[0]
     assert pick["status"] == "reaching_out" and pick["application_id"] == app_id
