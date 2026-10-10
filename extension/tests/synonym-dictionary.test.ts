@@ -237,7 +237,7 @@ describe('lookupFieldKey', () => {
     expect(lookupFieldKey('Desired salary')).toBe('jobPreferences.minimumSalary');
   });
 
-  it('maps Garmin-style iCIMS internship and termination questions', () => {
+  it('maps ATS-style iCIMS internship and termination questions', () => {
     expect(lookupFieldKey('Are you over the age of 18?')).toBe('jobPreferences.atLeast18');
     expect(lookupFieldKey('Are you able to commit to a twelve week internship?')).toBe('jobPreferences.canCommitInternshipTerm');
     expect(lookupFieldKey('Have you ever been terminated or asked to resign by a previous employer?')).toBe('professional.everTerminated');

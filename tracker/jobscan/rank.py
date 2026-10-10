@@ -88,6 +88,36 @@ def _company_hit(company: str, names) -> bool:
     return any(c == n or c.startswith(n + " ") or c.startswith(n + ",") for n in names)
 
 
+# Recognizable-enough-to-prioritize companies -- a prominence tie-breaker,
+# not a fit signal (a user preference can enable this tie-breaker). Scoped to
+# tech/semiconductor names actually seen in this
+# pipeline's feeds, not a general Fortune-500 list.
+BIG_NAME_COMPANIES = (
+    "google", "alphabet", "meta", "apple", "microsoft", "amazon", "nvidia",
+    "intel", "qualcomm", "amd", "broadcom", "texas instruments", "analog devices",
+    "ibm", "oracle", "cisco", "dell", "hewlett packard enterprise", "hp inc",
+    "tesla", "spacex", "netflix", "adobe", "salesforce", "samsung", "sony",
+    "western digital", "seagate", "micron", "micron technology",
+    "applied materials", "lam research", "kla", "arm", "nxp",
+    "stmicroelectronics", "infineon", "skyworks", "marvell", "marvell technology",
+    "palantir", "uber", "airbnb", "stripe", "pinterest", "linkedin",
+    "nokia", "ericsson", "garmin",
+)
+
+
+def _is_big_name(company: str) -> bool:
+    return _company_hit(company, BIG_NAME_COMPANIES)
+
+
+# Location tie-breaker. Matches a ", NC" state suffix or "North Carolina" by name,
+# and any remote-work posting regardless of state.
+_NC_OR_REMOTE_RX = re.compile(r",\s*NC\b|north carolina|\bremote\b", re.I)
+
+
+def _location_boost(location: str) -> int:
+    return 0 if _NC_OR_REMOTE_RX.search(location or "") else 1
+
+
 # Temporary company holds -- unlike DEFENSE_COMPANIES (a permanent block),
 # each entry here is a personal call about the current situation with that
 # company, not a fixed rule about the company itself, so it lives in the
@@ -203,6 +233,8 @@ def rank(candidates: list[dict], applied_keys: set, deleted_keys: set,
     ranked = sorted(kept.values(), key=lambda c: (
         0 if HARDWARE.search(c["role"] or "") else 1,
         _term_weight(c.get("term")),
+        0 if _is_big_name(c["company"]) else 1,
+        _location_boost(c.get("location")),
         -(c.get("heuristic_score") or 0),
         c["company"],
     ))

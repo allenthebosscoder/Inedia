@@ -69,7 +69,7 @@ describe('fillGreenhouseForm', () => {
   it('commits official Greenhouse React Select choices and maps combined ECE to its canonical discipline', async () => {
     mountSelect('country', 'Country', ['Canada +1', 'United States +1'], true, '+1');
     mountSelect('candidate-location', 'Location', ['Example City, North Carolina, United States']);
-    mountSelect('school--0', 'School', ['Example University', 'Duke Kunshan University']);
+    mountSelect('school--0', 'School', ['Example University', 'Example International University']);
     mountSelect('degree--0', 'Degree', ["Bachelor's Degree", "Master's Degree"]);
     mountSelect('discipline--0', 'Discipline', ['Computer Science', 'Electrical Engineering', 'Engineering']);
     mountSelect('end-month--0', 'End month', ['April', 'May', 'June']);

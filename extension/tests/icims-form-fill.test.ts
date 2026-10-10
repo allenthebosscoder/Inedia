@@ -77,7 +77,7 @@ describe('fillIcimsForm', () => {
     `;
     const profile = {
       ...DEFAULT_PROFILE,
-      education: [{ school: 'Duke', degree: 'BSE', fieldOfStudy: 'ECE', graduationDate: '05/2019', endYear: '2019' }],
+      education: [{ school: 'Example University', degree: 'BSE', fieldOfStudy: 'ECE', graduationDate: '05/2019', endYear: '2019' }],
     };
     expect(fillIcimsForm(profile)).toEqual({ filled: 1, flagged: 0 });
     expect((document.getElementById('Q237') as HTMLInputElement).value).toBe('NA');

@@ -61,8 +61,7 @@ def test_dedup_key_strips_alphanumeric_req_ids():
     # req id -- "2027 Internships: Hardware Engineering (JR2023508)" -- that
     # the old bare-digit-only strip (\b\d{4,}\b) never matched, since
     # "jr2023508" has no \w/\W boundary between the letters and digits.
-    # This let a real duplicate -- a user had already applied to this exact req on
-    # 2026-08-19 -- resurface as a fresh pick two months later.
+    # This previously let an exact duplicate resurface as a fresh pick.
     base = dedup_key("NVIDIA", "2027 Internships: Hardware Engineering")
     assert dedup_key("NVIDIA", "2027 Internships: Hardware Engineering (JR2023508)") == base
     assert dedup_key("NVIDIA", "2027 Internships: Software Engineering (JR2023495)") == \

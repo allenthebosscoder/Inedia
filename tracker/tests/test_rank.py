@@ -247,6 +247,30 @@ def test_drops_co_op_titles_internships_only():
     assert [r["company"] for r in ok] == ["Acme"]
 
 
+def test_big_name_company_ranks_above_generic_company_at_same_tier():
+    cands = [
+        _c("Tiny Startup LLC", "Software Engineer Intern", term="Summer 2027", score=60),
+        _c("NVIDIA", "Software Engineer Intern", term="Summer 2027", score=50),
+    ]
+    ranked, _ = rank(cands, applied_keys=set(), deleted_keys=set())
+    assert [r["company"] for r in ranked] == ["NVIDIA", "Tiny Startup LLC"]
+
+
+def test_remote_or_nc_location_ranks_above_other_location_at_same_tier():
+    cands = [
+        _c("Acme", "Software Engineer Intern", term="Summer 2027", score=60,
+           location="Austin, TX"),
+        _c("Beta", "Software Engineer Intern", term="Summer 2027", score=50,
+           location="Example City, NC"),
+        _c("Gamma", "Software Engineer Intern", term="Summer 2027", score=40,
+           location="Remote"),
+    ]
+    ranked, _ = rank(cands, applied_keys=set(), deleted_keys=set())
+    order = [r["company"] for r in ranked]
+    assert order.index("Beta") < order.index("Acme")
+    assert order.index("Gamma") < order.index("Acme")
+
+
 def test_capped_companies_drops_roles_at_a_company_over_the_app_limit():
     from jobscan.rank import capped_companies
     apps = [("Zipline", "SWE Intern"), ("Zipline", "Firmware Intern"),
